@@ -5,12 +5,18 @@ public partial class Player : CharacterBody2D
 	[Export] public float Speed = 100f;
 	[Export] public float AttackCooldown = 0.4f;
 	[Export] public int AttackDamage = 1;
+	[Export] public int Health = 5;
+	[Export] public float KnockbackForce = 120f;
 
 	private AnimatedSprite2D _sprite;
 	private Area2D _hitbox;
+	private Area2D _hurtBox;
 	private CollisionShape2D _hitboxShape;
 	private Vector2 _lastDirection = Vector2.Down;
 	private bool _isAttacking;
+	private bool _isDead;
+	private bool _isKnockedBack;
+	private float _knockbackTimer;
 	private float _attackTimer;
 
 	public override void _Ready()
@@ -22,12 +28,27 @@ public partial class Player : CharacterBody2D
 		_hitboxShape = _hitbox.GetNode<CollisionShape2D>("CollisionShape2D");
 		_hitbox.BodyEntered += OnHitBoxBodyEntered;
 		_hitboxShape.Disabled = true;
+
+		_hurtBox = GetNode<Area2D>("HurtBox");
+		_hurtBox.BodyEntered += OnHurtBoxBodyEntered;
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		if (_attackTimer > 0)
 			_attackTimer -= (float)delta;
+
+		if (_isKnockedBack)
+		{
+			_knockbackTimer -= (float)delta;
+			MoveAndSlide();
+			if (_knockbackTimer <= 0)
+			{
+				_isKnockedBack = false;
+				Velocity = Vector2.Zero;
+			}
+			return;
+		}
 
 		if (_isAttacking)
 			return;
@@ -115,8 +136,52 @@ public partial class Player : CharacterBody2D
 		GD.Print($"Hit: {body.Name} for {AttackDamage} damage");
 	}
 
+	private void OnHurtBoxBodyEntered(Node2D body)
+	{
+		if (body is Slime slime)
+		{
+			Vector2 knockDir = (GlobalPosition - slime.GlobalPosition).Normalized();
+			TakeDamage(slime.AttackDamage, knockDir);
+		}
+	}
+
+	public void TakeDamage(int damage, Vector2 knockbackDirection)
+	{
+		if (_isDead || _isKnockedBack)
+			return;
+
+		Health -= damage;
+		_sprite.Modulate = new Color(1, 0.3f, 0.3f);
+		GetTree().CreateTimer(0.15).Timeout += () => _sprite.Modulate = Colors.White;
+		GD.Print($"Player hit! Health: {Health}");
+
+		_isKnockedBack = true;
+		_knockbackTimer = 0.15f;
+		Velocity = knockbackDirection * KnockbackForce;
+
+		if (Health <= 0)
+			Die();
+	}
+
+	private void Die()
+	{
+		_isDead = true;
+		Velocity = Vector2.Zero;
+		_hurtBox.SetDeferred("monitoring", false);
+		_hurtBox.SetDeferred("monitorable", false);
+		_hitboxShape.Disabled = true;
+		_sprite.Play("dying");
+		SetPhysicsProcess(false);
+	}
+
 	private void OnAnimationFinished()
 	{
+		if (_isDead)
+		{
+			GetTree().ReloadCurrentScene();
+			return;
+		}
+
 		if (_isAttacking)
 		{
 			_isAttacking = false;
