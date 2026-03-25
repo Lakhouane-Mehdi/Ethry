@@ -3,6 +3,9 @@ using Godot;
 public partial class Player : CharacterBody2D
 {
 	[Export] public float Speed = 100f;
+	[Export] public float RunSpeedMultiplier = 1.8f;
+	[Export] public float Acceleration = 800f;
+	[Export] public float Friction = 1000f;
 	[Export] public float AttackCooldown = 0.4f;
 	[Export] public int AttackDamage = 1;
 	[Export] public int Health = 6;
@@ -74,9 +77,13 @@ public partial class Player : CharacterBody2D
 		}
 
 		if (_isAttacking)
+		{
+			Velocity = Vector2.Zero;
 			return;
+		}
 
 		Vector2 input = Input.GetVector("left", "right", "up", "down");
+		bool isRunning = Input.IsActionPressed("running");
 
 		if (Input.IsActionJustPressed("attack") && _attackTimer <= 0)
 		{
@@ -84,18 +91,23 @@ public partial class Player : CharacterBody2D
 			return;
 		}
 
-		Velocity = input * Speed;
-		MoveAndSlide();
+		float dt = (float)delta;
 
 		if (input != Vector2.Zero)
 		{
+			float targetSpeed = isRunning ? Speed * RunSpeedMultiplier : Speed;
+			Vector2 targetVelocity = input * targetSpeed;
+			Velocity = Velocity.MoveToward(targetVelocity, Acceleration * dt);
 			_lastDirection = input;
 			PlayAnimation("run");
 		}
 		else
 		{
+			Velocity = Velocity.MoveToward(Vector2.Zero, Friction * dt);
 			PlayAnimation("idle");
 		}
+
+		MoveAndSlide();
 
 		UpdateSpriteFlip();
 	}
