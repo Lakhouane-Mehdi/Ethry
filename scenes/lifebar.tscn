@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://c6x1jrldt1j6p"]
+
+[ext_resource type="Texture2D" uid="uid://c0g2k6kaxwxmh" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_bars.png" id="1_f21p1"]
+
+[node name="lifebar" type="Node2D" unique_id=1732761604]
+
+[node name="full" type="Sprite2D" parent="." unique_id=551158703]
+scale = Vector2(3, 3)
+texture = ExtResource("1_f21p1")
+region_enabled = true
+region_rect = Rect2(1.971684, 6.851268, 28.138485, 3.3238945)
+
+[node name="empty" type="Sprite2D" parent="." unique_id=1842811084]
+texture = ExtResource("1_f21p1")
+region_enabled = true
+region_rect = Rect2(114.92255, 105.681854, 28.248276, 3.2516937)

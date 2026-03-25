@@ -465,3 +465,5 @@ collision_mask = 4
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=1136423167]
 shape = SubResource("RectangleShape2D_hurt")
 debug_color = Color(0.26280448, 0.6042343, 0.54395974, 0.41960785)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=720139053]

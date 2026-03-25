@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://cpo5j0bgjtbeq"]
+
+[ext_resource type="Texture2D" uid="uid://huwun7vqo2vv" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_icons.png" id="1_v30as"]
+
+[node name="heart" type="Node2D" unique_id=1362062901]
+
+[node name="health" type="Sprite2D" parent="." unique_id=1432502798]
+texture = ExtResource("1_v30as")
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 16)
+
+[node name="healthunder" type="Sprite2D" parent="." unique_id=1541462096]
+visible = false
+scale = Vector2(0.84615386, 1)
+texture = ExtResource("1_v30as")
+region_enabled = true
+region_rect = Rect2(16, 0, 17, 17)
+
+[node name="healthzero" type="Sprite2D" parent="." unique_id=405516627]
+visible = false
+texture = ExtResource("1_v30as")
+region_enabled = true
+region_rect = Rect2(32.038, 0, 16, 16)

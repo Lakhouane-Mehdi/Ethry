@@ -5,13 +5,14 @@ public partial class Player : CharacterBody2D
 	[Export] public float Speed = 100f;
 	[Export] public float AttackCooldown = 0.4f;
 	[Export] public int AttackDamage = 1;
-	[Export] public int Health = 5;
+	[Export] public int Health = 6;
 	[Export] public float KnockbackForce = 120f;
 
 	private AnimatedSprite2D _sprite;
 	private Area2D _hitbox;
 	private Area2D _hurtBox;
 	private CollisionShape2D _hitboxShape;
+	private Camera2D _camera;
 	private Vector2 _lastDirection = Vector2.Down;
 	private bool _isAttacking;
 	private bool _isDead;
@@ -31,6 +32,28 @@ public partial class Player : CharacterBody2D
 
 		_hurtBox = GetNode<Area2D>("HurtBox");
 		_hurtBox.BodyEntered += OnHurtBoxBodyEntered;
+
+		_camera = GetNode<Camera2D>("Camera2D");
+		SetCameraLimits();
+	}
+
+	private void SetCameraLimits()
+	{
+		var tileMap = GetParent().GetNodeOrNull<TileMapLayer>("TileMapLayer");
+		if (tileMap == null)
+			return;
+
+		Rect2I usedRect = tileMap.GetUsedRect();
+		int tileSize = tileMap.TileSet.TileSize.X;
+		Vector2 scale = tileMap.Scale;
+
+		float cellSize = tileSize * scale.X;
+
+		_camera.LimitLeft = (int)(usedRect.Position.X * cellSize);
+		_camera.LimitTop = (int)(usedRect.Position.Y * cellSize);
+		_camera.LimitRight = (int)((usedRect.Position.X + usedRect.Size.X) * cellSize);
+		_camera.LimitBottom = (int)((usedRect.Position.Y + usedRect.Size.Y) * cellSize);
+		_camera.LimitSmoothed = true;
 	}
 
 	public override void _PhysicsProcess(double delta)

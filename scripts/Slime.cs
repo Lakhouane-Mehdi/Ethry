@@ -14,6 +14,8 @@ public partial class Slime : CharacterBody2D
 	private Area2D _hitBox;
 	private CollisionShape2D _hitBoxShape;
 	private Area2D _sight;
+	private Sprite2D _lifeBarFull;
+	private int _maxHealth;
 	private float _wanderTimer;
 	private Vector2 _wanderDirection;
 	private bool _isDead;
@@ -35,6 +37,8 @@ public partial class Slime : CharacterBody2D
 		_sight.BodyEntered += OnSightBodyEntered;
 		_sight.BodyExited += OnSightBodyExited;
 		_sprite.AnimationFinished += OnAnimationFinished;
+		_lifeBarFull = GetNode<Sprite2D>("LifeBar/Full");
+		_maxHealth = Health;
 		_wanderTimer = WanderTime;
 		PickRandomDirection();
 	}
@@ -124,6 +128,7 @@ public partial class Slime : CharacterBody2D
 			return;
 
 		Health -= damage;
+		UpdateLifeBar();
 		FlashHit();
 
 		_isKnockedBack = true;
@@ -139,6 +144,12 @@ public partial class Slime : CharacterBody2D
 	{
 		_sprite.Modulate = new Color(1, 0.3f, 0.3f);
 		GetTree().CreateTimer(0.15).Timeout += () => _sprite.Modulate = Colors.White;
+	}
+
+	private void UpdateLifeBar()
+	{
+		float ratio = Mathf.Clamp((float)Health / _maxHealth, 0f, 1f);
+		_lifeBarFull.Scale = new Vector2(ratio, 1f);
 	}
 
 	private void DisableHitBox()
