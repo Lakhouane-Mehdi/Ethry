@@ -25,6 +25,7 @@ public partial class Player : CharacterBody2D
 
 	public override void _Ready()
 	{
+		AddToGroup("player");
 		_sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 		_sprite.AnimationFinished += OnAnimationFinished;
 
@@ -42,7 +43,7 @@ public partial class Player : CharacterBody2D
 
 	private void SetCameraLimits()
 	{
-		var tileMap = GetParent().GetNodeOrNull<TileMapLayer>("TileMapLayer");
+		var tileMap = GetParent().GetNodeOrNull<TileMapLayer>("terrain");
 		if (tileMap == null)
 			return;
 
@@ -161,7 +162,7 @@ public partial class Player : CharacterBody2D
 
 	private void DisableHitBox()
 	{
-		_hitboxShape.Disabled = true;
+		_hitboxShape.SetDeferred("disabled", true);
 	}
 
 	private void OnHitBoxBodyEntered(Node2D body)
@@ -204,7 +205,7 @@ public partial class Player : CharacterBody2D
 		Velocity = Vector2.Zero;
 		_hurtBox.SetDeferred("monitoring", false);
 		_hurtBox.SetDeferred("monitorable", false);
-		_hitboxShape.Disabled = true;
+		_hitboxShape.SetDeferred("disabled", true);
 		_sprite.Play("dying");
 		SetPhysicsProcess(false);
 	}

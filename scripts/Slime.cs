@@ -48,6 +48,8 @@ public partial class Slime : CharacterBody2D
 		if (_isDead)
 			return;
 
+
+
 		if (_isKnockedBack)
 		{
 			_knockbackTimer -= (float)delta;
@@ -154,7 +156,7 @@ public partial class Slime : CharacterBody2D
 
 	private void DisableHitBox()
 	{
-		_hitBoxShape.Disabled = true;
+		_hitBoxShape.SetDeferred("disabled", true);
 	}
 
 	private void Die()
@@ -189,7 +191,7 @@ public partial class Slime : CharacterBody2D
 	{
 		if (_isDead)
 		{
-			QueueFree();
+			CallDeferred(MethodName.QueueFree);
 			return;
 		}
 
