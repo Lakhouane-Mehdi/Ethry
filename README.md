@@ -2,10 +2,13 @@
 
 A 2D top-down adventure game built with Godot 4.6 and C#.
 
+![Gameplay Screenshot](assets/screenshot.png)
 ## Features
 
 - Player movement and animation
 - Attack system with hitbox detection
+- Resource gathering (Wood, Stone, Herbs)
+- Inventory system for item pickups
 - Pixel art style
 
 ## Getting Started
