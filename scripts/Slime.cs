@@ -3,7 +3,7 @@ using Godot;
 public partial class Slime : CharacterBody2D
 {
 	[Export] public int Health = 3;
-	[Export] public float Speed = 30f;
+	[Export] public float Speed = 50f;
 	[Export] public float AttackRange = 64f;
 	[Export] public float WanderTime = 2f;
 	[Export] public int AttackDamage = 1;

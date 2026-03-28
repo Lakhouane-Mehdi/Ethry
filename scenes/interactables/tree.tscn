@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://b1wj4ibg7now5"]
+
+[ext_resource type="Script" uid="uid://dt71fpxw4oa6g" path="res://scripts/ResourceNode.cs" id="1_rnode"]
+[ext_resource type="Texture2D" uid="uid://bnhn20xtkvw82" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/oak_tree.png" id="2_oaktree"]
+[ext_resource type="PackedScene" path="res://scenes/items/item_pickup.tscn" id="3_pickup"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trunk"]
+size = Vector2(14.5, 14)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(9, 7.625)
+
+[node name="Tree" type="Node2D" unique_id=1746360041]
+process_priority = 1
+scale = Vector2(2, 2)
+script = ExtResource("1_rnode")
+ItemPickupScene = ExtResource("3_pickup")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1475963941]
+position = Vector2(0, -17)
+scale = Vector2(2, 2)
+texture = ExtResource("2_oaktree")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1651980752]
+position = Vector2(0, -38)
+scale = Vector2(2, 2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1994347653]
+position = Vector2(0, 27)
+shape = SubResource("RectangleShape2D_trunk")
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=1650499495]
+position = Vector2(0, -46)
+scale = Vector2(2, 2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=1539096607]
+y_sort_enabled = true
+position = Vector2(0, 31)
+scale = Vector2(2, 2)
+shape = SubResource("RectangleShape2D_hurt")
