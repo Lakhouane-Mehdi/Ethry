@@ -17,4 +17,7 @@ A 2D top-down adventure game built with Godot 4.6 and C#.
 2. Build the C# solution
 3. Run the project
 
-## Made by Mehdi Lakhouane
+## Credits
+
+* **Game Developer:** Mehdi Lakhouane
+* **Art & Assets:** Powered by the beautiful [Cute Fantasy RPG](https://kenmi-art.itch.io/cute-fantasy-rpg) series and expansions created by **Kenmi** on itch.io.
