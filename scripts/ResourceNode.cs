@@ -70,7 +70,7 @@ public partial class ResourceNode : Node2D
 			pickup.Type = DropType;
 			pickup.Amount = amount;
 			pickup.GlobalPosition = GlobalPosition;
-			GetParent().AddChild(pickup);
+			GetParent().CallDeferred(Node.MethodName.AddChild, pickup);
 		}
 
 		QueueFree();

@@ -14,6 +14,8 @@
 [ext_resource type="Texture2D" uid="uid://bnhn20xtkvw82" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/oak_tree.png" id="8_53c65"]
 [ext_resource type="Texture2D" uid="uid://460cnkdogt8c" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/houses/house_2_6.png" id="8_bd4s6"]
 [ext_resource type="Script" uid="uid://d0lgeietpqx6e" path="res://scripts/Exit.cs" id="9_exit"]
+[ext_resource type="PackedScene" uid="uid://c830phk3c0aqr" path="res://scenes/interactables/herb.tscn" id="11_j8xgc"]
+[ext_resource type="PackedScene" uid="uid://d3g6fphsp44wj" path="res://scenes/interactables/rock.tscn" id="12_ovmjf"]
 [ext_resource type="PackedScene" uid="uid://bwlapqw1ld6ku" path="res://scenes/ui/inventory_ui.tscn" id="15_575cj"]
 [ext_resource type="PackedScene" uid="uid://b1wj4ibg7now5" path="res://scenes/interactables/tree.tscn" id="16_i5apv"]
 
@@ -512,8 +514,44 @@ scale = Vector2(4, 4)
 tile_map_data = PackedByteArray("AAAAAA0AAQAAAAEAAAAAAA4AAQAAAAIAAAAAAA8AAQAAAAMAAAAAABAAAQAAAAQAAAAAABEAAQAAAAUAAAAAABIAAQAAAAYAAAABAAwAAQABAAAAAAABAA0AAQABAAEAAAABAA4AAQABAAIAAAABAA8AAQABAAMAAAABABAAAQABAAQAAAABABEAAQABAAUAAAABABIAAQABAAYAAAACAAwAAQACAAAAAAACAA0AAQACAAEAAAACAA4AAQACAAIAAAACAA8AAQACAAMAAAACABAAAQACAAQAAAACABEAAQACAAUAAAACABIAAQACAAYAAAADAAwAAQADAAAAAAADAA0AAQADAAEAAAADAA4AAQADAAIAAAADAA8AAQADAAMAAAADABAAAQADAAQAAAADABEAAQADAAUAAAADABIAAQADAAYAAAAEAA0AAQAEAAEAAAAEAA4AAQAEAAIAAAAEAA8AAQAEAAMAAAAEABAAAQAEAAQAAAAEABEAAQAEAAUAAAAEABIAAQAEAAYAAAAFAA0AAQAFAAEAAAAFAA4AAQAFAAIAAAAFAA8AAQAFAAMAAAAFABAAAQAFAAQAAAAFABEAAQAFAAUAAAAGAA0AAQAGAAEAAAAGAA4AAQAGAAIAAAAGAA8AAQAGAAMAAAAGABAAAQAGAAQAAAAGABEAAQAGAAUAAAAHAA0AAQAHAAEAAAAHAA4AAQAHAAIAAAAHAA8AAQAHAAMAAAAHABAAAQAHAAQAAAAHABEAAQAHAAUAAAA=")
 tile_set = SubResource("TileSet_bd4s6")
 
-[node name="Tree" parent="." unique_id=1746360041 instance=ExtResource("16_i5apv")]
-position = Vector2(387, 438)
+[node name="interactables" type="Node2D" parent="." unique_id=1808058717]
+y_sort_enabled = true
+
+[node name="Tree" parent="interactables" unique_id=1746360041 instance=ExtResource("16_i5apv")]
+position = Vector2(1880, 1534)
+
+[node name="Tree2" parent="interactables" unique_id=2036864638 instance=ExtResource("16_i5apv")]
+position = Vector2(379, 494)
+
+[node name="Tree3" parent="interactables" unique_id=1986111953 instance=ExtResource("16_i5apv")]
+position = Vector2(2721, 323)
+
+[node name="Tree4" parent="interactables" unique_id=1298315569 instance=ExtResource("16_i5apv")]
+position = Vector2(3032, 304)
+
+[node name="Herb" parent="interactables" unique_id=1346228950 instance=ExtResource("11_j8xgc")]
+position = Vector2(233, 636)
+
+[node name="Herb2" parent="interactables" unique_id=449094251 instance=ExtResource("11_j8xgc")]
+position = Vector2(1310, 644)
+
+[node name="Herb3" parent="interactables" unique_id=191768332 instance=ExtResource("11_j8xgc")]
+position = Vector2(1238, 605)
+
+[node name="Herb4" parent="interactables" unique_id=1520252716 instance=ExtResource("11_j8xgc")]
+position = Vector2(1275, 644)
+
+[node name="Herb5" parent="interactables" unique_id=1525923705 instance=ExtResource("11_j8xgc")]
+position = Vector2(1238, 642)
+
+[node name="Rock" parent="interactables" unique_id=1441697664 instance=ExtResource("12_ovmjf")]
+position = Vector2(694, 650)
+
+[node name="Rock2" parent="interactables" unique_id=438920017 instance=ExtResource("12_ovmjf")]
+position = Vector2(914, 423)
+
+[node name="Rock3" parent="interactables" unique_id=1091112459 instance=ExtResource("12_ovmjf")]
+position = Vector2(1013, 418)
 
 [node name="Player" parent="." unique_id=2095088575 instance=ExtResource("3_wwrw0")]
 position = Vector2(100, 728)

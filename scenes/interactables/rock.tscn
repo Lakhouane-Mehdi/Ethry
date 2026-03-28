@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://d3g6fphsp44wj"]
+
+[ext_resource type="Script" uid="uid://dt71fpxw4oa6g" path="res://scripts/ResourceNode.cs" id="1_rnode"]
+[ext_resource type="PackedScene" uid="uid://vp28iya1b4qx" path="res://scenes/items/item_pickup.tscn" id="3_pickup"]
+[ext_resource type="Texture2D" uid="uid://xlxbxpebdh3l" path="res://assets/cute_fantasy/cute_fantasy/outdoor decoration/outdoor_decor.png" id="3_sdgva"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tp18n"]
+atlas = ExtResource("3_sdgva")
+region = Rect2(64.16793, 144.55397, 16.41668, 14.819977)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trunk"]
+size = Vector2(16, 12)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(18, 14)
+
+[node name="Rock" type="Node2D" unique_id=1441697664]
+y_sort_enabled = true
+scale = Vector2(3, 3)
+script = ExtResource("1_rnode")
+Health = 5
+DropType = 1
+ItemPickupScene = ExtResource("3_pickup")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1013643609]
+position = Vector2(0, -6)
+texture = SubResource("AtlasTexture_tp18n")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=699014159]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1314855493]
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_trunk")
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=797299136]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=383545639]
+position = Vector2(0, -6)
+shape = SubResource("RectangleShape2D_hurt")

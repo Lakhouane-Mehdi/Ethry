@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://c830phk3c0aqr"]
+
+[ext_resource type="Script" uid="uid://dt71fpxw4oa6g" path="res://scripts/ResourceNode.cs" id="1_rnode"]
+[ext_resource type="Texture2D" uid="uid://xlxbxpebdh3l" path="res://assets/cute_fantasy/cute_fantasy/outdoor decoration/outdoor_decor.png" id="3_7y8b0"]
+[ext_resource type="PackedScene" uid="uid://vp28iya1b4qx" path="res://scenes/items/item_pickup.tscn" id="3_pickup"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c250a"]
+atlas = ExtResource("3_7y8b0")
+region = Rect2(48.650833, 143.93425, 15.634933, 15.969971)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trunk"]
+size = Vector2(10, 8)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(14, 12)
+
+[node name="Herb" type="Node2D" unique_id=1346228950]
+y_sort_enabled = true
+scale = Vector2(3, 3)
+script = ExtResource("1_rnode")
+Health = 1
+DropType = 2
+DropMax = 1
+ItemPickupScene = ExtResource("3_pickup")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1445618952]
+position = Vector2(0, -4)
+texture = SubResource("AtlasTexture_c250a")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=2005651639]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1085107493]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_trunk")
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=1527736944]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=268371616]
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_hurt")

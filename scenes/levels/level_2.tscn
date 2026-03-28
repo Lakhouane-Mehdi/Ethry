@@ -14,12 +14,42 @@ tile_map_data = PackedByteArray("AABuAA4AAgADAAEAAGBuAA0AAgAEAAEAAGBuAAwAAgAFAAE
 [node name="buildings" parent="." index="2" unique_id=1671297681]
 tile_map_data = PackedByteArray()
 
+[node name="Tree" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="0" unique_id=1746360041]
+position = Vector2(81, 836)
+
+[node name="Tree2" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="1" unique_id=2036864638]
+position = Vector2(140, 1220)
+
+[node name="Tree4" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="3" unique_id=1298315569]
+position = Vector2(681, 91)
+
+[node name="Herb2" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="5" unique_id=449094251]
+position = Vector2(1546, 906)
+
+[node name="Herb3" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="6" unique_id=191768332]
+position = Vector2(1453, 838)
+
+[node name="Herb4" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="7" unique_id=1520252716]
+position = Vector2(1482, 908)
+
+[node name="Herb5" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="8" unique_id=1525923705]
+position = Vector2(1509, 847)
+
+[node name="Rock2" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="10" unique_id=438920017]
+position = Vector2(1060, 877)
+
+[node name="Rock3" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="11" unique_id=1091112459]
+position = Vector2(964, 883)
+
+[node name="Player" parent="." index="4" unique_id=2095088575]
+position = Vector2(82, 962)
+
 [node name="slime2" parent="enemies" parent_id_path=PackedInt32Array(1097563442) index="1" unique_id=1658102612 instance=ExtResource("2_ra442")]
 position = Vector2(2556, 1256)
 
 [node name="slime3" parent="enemies" parent_id_path=PackedInt32Array(1097563442) index="2" unique_id=790715699 instance=ExtResource("2_ra442")]
 position = Vector2(3102, 636)
 
-[node name="exit" parent="." index="6" unique_id=1459572115]
+[node name="exit" parent="." index="7" unique_id=1459572115]
 position = Vector2(8040, 868)
 NextLevelPath = "res://scenes/levels/level_3.tscn"
