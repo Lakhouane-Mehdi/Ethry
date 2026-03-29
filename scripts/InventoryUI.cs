@@ -14,10 +14,7 @@ public partial class InventoryUI : CanvasLayer
 	private int _selectedIndex = -1;
 	private readonly List<ItemType> _itemOrder = new();
 
-	private Texture2D _resourcesAtlas;
-	private Texture2D _toolsAtlas;
-	private Texture2D _foodAtlas;
-	private Texture2D _otherAtlas;
+	private readonly Dictionary<string, Texture2D> _textureCache = new();
 
 	private const int SlotSize = 48;
 	private const int IconSize = 32;
@@ -35,11 +32,6 @@ public partial class InventoryUI : CanvasLayer
 
 	public override void _Ready()
 	{
-		_resourcesAtlas = GD.Load<Texture2D>("res://assets/cute_fantasy/cute_fantasy/icons/outline/resources_icons_outline.png");
-		_toolsAtlas = GD.Load<Texture2D>("res://assets/cute_fantasy/cute_fantasy/icons/outline/tool_icons_outline.png");
-		_foodAtlas = GD.Load<Texture2D>("res://assets/cute_fantasy/cute_fantasy/icons/outline/food_icons_outline.png");
-		_otherAtlas = GD.Load<Texture2D>("res://assets/cute_fantasy/cute_fantasy/icons/outline/other_icons_outline.png");
-
 		BuildUI();
 		Inventory.Instance.Changed += Refresh;
 	}
@@ -327,18 +319,20 @@ public partial class InventoryUI : CanvasLayer
 		_detailDesc.Text = "Select an item to see details.";
 	}
 
+	private Texture2D GetCachedTexture(string path)
+	{
+		if (!_textureCache.TryGetValue(path, out var tex))
+		{
+			tex = GD.Load<Texture2D>(path);
+			_textureCache[path] = tex;
+		}
+		return tex;
+	}
+
 	private AtlasTexture GetIconAtlas(ItemType type)
 	{
 		var atlas = new AtlasTexture();
-		var category = ItemRegistry.GetCategory(type);
-		atlas.Atlas = category switch
-		{
-			ItemCategory.Resource => _resourcesAtlas,
-			ItemCategory.Tool     => _toolsAtlas,
-			ItemCategory.Weapon   => _toolsAtlas,
-			ItemCategory.Food     => _foodAtlas,
-			_                     => _otherAtlas
-		};
+		atlas.Atlas = GetCachedTexture(ItemRegistry.GetIconTexturePath(type));
 		atlas.Region = ItemRegistry.GetIconRegion(type);
 		return atlas;
 	}

@@ -95,20 +95,22 @@ public static class ItemRegistry
 		_                  => ""
 	};
 
-	// Returns the atlas region (x, y, w, h) in the icon spritesheet for each item
-	// resources_icons_outline.png: 96x96, 16x16 tiles (6 columns, 6 rows)
-	// tool_icons_outline.png: 160x16, 16x16 tiles (10 columns, 1 row)
-	// food_icons_outline.png: 128x192, 16x16 tiles (8 columns, 12 rows)
+	// Icon atlas path + region for each item
+	// Uses the same textures as the actual item pickups in the game
 	public static Rect2 GetIconRegion(ItemType type) => type switch
 	{
-		// Resources (from resources_icons_outline.png)
-		ItemType.Wood    => new Rect2(0, 0, 16, 16),
-		ItemType.Stone   => new Rect2(16, 0, 16, 16),
-		ItemType.Herb    => new Rect2(64, 16, 16, 16),
+		// Wood: log from outdoor_decor.png
+		ItemType.Wood    => new Rect2(67, 115, 26, 11),
+		// Stone: rock from resources_icons_no_outline.png
+		ItemType.Stone   => new Rect2(1, 80, 14, 15),
+		// Herb: plant from outdoor_decor_free.png
+		ItemType.Herb    => new Rect2(35, 3, 11, 10),
+
+		// Resources (from resources_icons_no_outline.png) - 16x16 grid
 		ItemType.Coal    => new Rect2(32, 0, 16, 16),
 		ItemType.IronOre => new Rect2(48, 0, 16, 16),
 		ItemType.GoldOre => new Rect2(64, 0, 16, 16),
-		ItemType.Crystal => new Rect2(80, 0, 16, 16),
+		ItemType.Crystal => new Rect2(0, 64, 16, 16),
 
 		// Tools (from tool_icons_outline.png)
 		ItemType.Axe     => new Rect2(0, 0, 16, 16),
@@ -128,18 +130,25 @@ public static class ItemRegistry
 		_ => new Rect2(0, 0, 16, 16)
 	};
 
-	public static string GetIconTexturePath(ItemType type)
+	// Each item type maps to a specific texture atlas
+	public static string GetIconTexturePath(ItemType type) => type switch
 	{
-		var category = GetCategory(type);
-		return category switch
-		{
-			ItemCategory.Resource => "res://assets/cute_fantasy/cute_fantasy/icons/outline/resources_icons_outline.png",
-			ItemCategory.Tool     => "res://assets/cute_fantasy/cute_fantasy/icons/outline/tool_icons_outline.png",
-			ItemCategory.Weapon   => "res://assets/cute_fantasy/cute_fantasy/icons/outline/tool_icons_outline.png",
-			ItemCategory.Food     => "res://assets/cute_fantasy/cute_fantasy/icons/outline/food_icons_outline.png",
-			_                     => "res://assets/cute_fantasy/cute_fantasy/icons/outline/other_icons_outline.png"
-		};
-	}
+		ItemType.Wood => "res://assets/cute_fantasy/cute_fantasy/outdoor decoration/outdoor_decor.png",
+		ItemType.Stone => "res://assets/cute_fantasy/cute_fantasy/icons/no outline/resources_icons_no_outline.png",
+		ItemType.Herb => "res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/outdoor_decor_free.png",
+
+		ItemType.Coal or ItemType.IronOre or ItemType.GoldOre or ItemType.Crystal
+			=> "res://assets/cute_fantasy/cute_fantasy/icons/no outline/resources_icons_no_outline.png",
+
+		ItemType.Axe or ItemType.Pickaxe or ItemType.Shovel or
+		ItemType.WoodSword or ItemType.IronSword or ItemType.GoldSword
+			=> "res://assets/cute_fantasy/cute_fantasy/icons/outline/tool_icons_outline.png",
+
+		ItemType.Apple or ItemType.Bread or ItemType.Mushroom
+			=> "res://assets/cute_fantasy/cute_fantasy/icons/outline/food_icons_outline.png",
+
+		_ => "res://assets/cute_fantasy/cute_fantasy/icons/outline/other_icons_outline.png"
+	};
 
 	public static int GetMaxStack(ItemType type)
 	{
