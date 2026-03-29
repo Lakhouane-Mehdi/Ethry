@@ -496,6 +496,9 @@ sources/1 = SubResource("TileSetAtlasSource_1vfnp")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43bxi"]
 size = Vector2(56, 135)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_house"]
+size = Vector2(40, 22)
+
 [node name="levelroot" type="Node2D" unique_id=667194796]
 y_sort_enabled = true
 
@@ -586,5 +589,16 @@ metadata/_edit_group_ = true
 position = Vector2(-18, -1.5)
 shape = SubResource("RectangleShape2D_43bxi")
 debug_color = Color(0.87486154, 0.21802557, 0.6694468, 0.41960785)
+
+[node name="house_entrance" type="Area2D" parent="." unique_id=1015793505]
+position = Vector2(211, 954)
+collision_layer = 0
+script = ExtResource("9_exit")
+NextLevelPath = "res://scenes/levels/house_interior.tscn"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="house_entrance" unique_id=1924662973]
+position = Vector2(-103, 227)
+shape = SubResource("RectangleShape2D_house")
+debug_color = Color(0.21802557, 0.87486154, 0.4, 0.41960785)
 
 [node name="InventoryUI" parent="." unique_id=2118084509 instance=ExtResource("15_575cj")]

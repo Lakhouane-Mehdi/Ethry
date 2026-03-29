@@ -3,6 +3,7 @@ using Godot;
 public partial class Exit : Area2D
 {
 	[Export] public string NextLevelPath;
+	[Export] public Vector2 SpawnPosition = Vector2.Inf;
 
 	public override void _Ready()
 	{
@@ -17,6 +18,6 @@ public partial class Exit : Area2D
 		if (!body.IsInGroup("player") || string.IsNullOrEmpty(NextLevelPath))
 			return;
 
-		GetTree().CallDeferred(SceneTree.MethodName.ChangeSceneToFile, NextLevelPath);
+		SceneTransition.Instance.TransitionTo(NextLevelPath, SpawnPosition);
 	}
 }

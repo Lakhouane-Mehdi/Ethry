@@ -121,6 +121,16 @@ public partial class Player : CharacterBody2D
 		PlayAnimation("attack");
 		UpdateSpriteFlip();
 		EnableHitBox();
+
+		// Safety timeout: force reset attacking state in case animation signal is missed
+		GetTree().CreateTimer(0.6).Timeout += () =>
+		{
+			if (_isAttacking)
+			{
+				_isAttacking = false;
+				DisableHitBox();
+			}
+		};
 	}
 
 	private void PlayAnimation(string action)
