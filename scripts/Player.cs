@@ -7,7 +7,7 @@ public partial class Player : CharacterBody2D
 	[Export] public float Acceleration = 800f;
 	[Export] public float Friction = 1000f;
 	[Export] public float AttackCooldown = 0.4f;
-	[Export] public int AttackDamage = 1;
+	public int AttackDamage => Equipment.Instance?.GetAttackDamage() ?? 1;
 	[Export] public int Health = 6;
 	[Export] public float KnockbackForce = 120f;
 

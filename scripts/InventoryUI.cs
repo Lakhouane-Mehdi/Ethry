@@ -9,7 +9,12 @@ public partial class InventoryUI : CanvasLayer
 	private Label _detailName;
 	private Label _detailDesc;
 	private Label _detailCategory;
+	private Label _detailAction;
 	private PanelContainer _detailPanel;
+	private PanelContainer _weaponSlot;
+	private TextureRect _weaponIcon;
+	private Label _weaponLabel;
+	private Label _damageLabel;
 	private bool _isVisible;
 	private int _selectedIndex = -1;
 	private readonly List<ItemType> _itemOrder = new();
@@ -29,11 +34,14 @@ public partial class InventoryUI : CanvasLayer
 	private static readonly Color TitleColor = new(0.95f, 0.85f, 0.6f);
 	private static readonly Color TextColor = new(0.9f, 0.82f, 0.65f);
 	private static readonly Color TextDim = new(0.65f, 0.55f, 0.4f);
+	private static readonly Color EquipColor = new(0.3f, 0.2f, 0.45f, 0.8f);
+	private static readonly Color EquipBorder = new(0.55f, 0.4f, 0.7f, 1f);
 
 	public override void _Ready()
 	{
 		BuildUI();
 		Inventory.Instance.Changed += Refresh;
+		Equipment.Instance.Changed += Refresh;
 	}
 
 	private StyleBoxFlat MakeStyleBox(Color bg, Color border, int borderWidth = 2, int cornerRadius = 4, int padding = 0)
@@ -68,12 +76,12 @@ public partial class InventoryUI : CanvasLayer
 		_panel.OffsetLeft = -290;
 		_panel.OffsetTop = 10;
 		_panel.OffsetRight = -10;
-		_panel.OffsetBottom = 420;
+		_panel.OffsetBottom = 480;
 		_panel.Visible = false;
 		AddChild(_panel);
 
 		var vbox = new VBoxContainer();
-		vbox.AddThemeConstantOverride("separation", 8);
+		vbox.AddThemeConstantOverride("separation", 6);
 		_panel.AddChild(vbox);
 
 		// Title
@@ -83,6 +91,64 @@ public partial class InventoryUI : CanvasLayer
 		title.AddThemeFontSizeOverride("font_size", 16);
 		title.HorizontalAlignment = HorizontalAlignment.Center;
 		vbox.AddChild(title);
+
+		// Equipment section
+		var equipHBox = new HBoxContainer();
+		equipHBox.AddThemeConstantOverride("separation", 8);
+		equipHBox.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+		vbox.AddChild(equipHBox);
+
+		var weaponLabel = new Label();
+		weaponLabel.Text = "WEAPON:";
+		weaponLabel.AddThemeColorOverride("font_color", TextDim);
+		weaponLabel.AddThemeFontSizeOverride("font_size", 10);
+		weaponLabel.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+		equipHBox.AddChild(weaponLabel);
+
+		_weaponSlot = new PanelContainer();
+		_weaponSlot.AddThemeStyleboxOverride("panel", MakeStyleBox(EquipColor, EquipBorder, 2, 3, 2));
+		_weaponSlot.CustomMinimumSize = new Vector2(SlotSize, SlotSize);
+		equipHBox.AddChild(_weaponSlot);
+
+		_weaponIcon = new TextureRect();
+		_weaponIcon.SetAnchorsPreset(Control.LayoutPreset.Center);
+		_weaponIcon.OffsetLeft = -IconSize / 2;
+		_weaponIcon.OffsetTop = -IconSize / 2;
+		_weaponIcon.OffsetRight = IconSize / 2;
+		_weaponIcon.OffsetBottom = IconSize / 2;
+		_weaponIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+		_weaponIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+		_weaponIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+		_weaponIcon.MouseFilter = Control.MouseFilterEnum.Ignore;
+		_weaponSlot.AddChild(_weaponIcon);
+
+		// Click to unequip
+		var unequipBtn = new Button();
+		unequipBtn.Flat = true;
+		unequipBtn.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		unequipBtn.MouseFilter = Control.MouseFilterEnum.Stop;
+		unequipBtn.Pressed += () =>
+		{
+			Equipment.Instance.Unequip();
+			Refresh();
+		};
+		_weaponSlot.AddChild(unequipBtn);
+
+		// Damage info next to weapon slot
+		var equipInfo = new VBoxContainer();
+		equipInfo.AddThemeConstantOverride("separation", 0);
+		equipInfo.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+		equipHBox.AddChild(equipInfo);
+
+		_weaponLabel = new Label();
+		_weaponLabel.AddThemeColorOverride("font_color", TextColor);
+		_weaponLabel.AddThemeFontSizeOverride("font_size", 11);
+		equipInfo.AddChild(_weaponLabel);
+
+		_damageLabel = new Label();
+		_damageLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.4f, 0.3f));
+		_damageLabel.AddThemeFontSizeOverride("font_size", 10);
+		equipInfo.AddChild(_damageLabel);
 
 		// Separator
 		var sep = new HSeparator();
@@ -150,6 +216,12 @@ public partial class InventoryUI : CanvasLayer
 		_detailDesc.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 		detailVBox.AddChild(_detailDesc);
 
+		// Action hint
+		_detailAction = new Label();
+		_detailAction.AddThemeColorOverride("font_color", new Color(0.5f, 0.8f, 0.5f));
+		_detailAction.AddThemeFontSizeOverride("font_size", 10);
+		detailVBox.AddChild(_detailAction);
+
 		ClearDetail();
 	}
 
@@ -176,6 +248,20 @@ public partial class InventoryUI : CanvasLayer
 			MoveSelection(Columns);
 		else if (@event.IsActionPressed("ui_up"))
 			MoveSelection(-Columns);
+		else if (@event.IsActionPressed("ui_accept"))
+			TryEquipSelected();
+	}
+
+	private void TryEquipSelected()
+	{
+		if (_selectedIndex < 0 || _selectedIndex >= _itemOrder.Count) return;
+
+		var type = _itemOrder[_selectedIndex];
+		if (ItemRegistry.GetCategory(type) == ItemCategory.Weapon)
+		{
+			Equipment.Instance.Equip(type);
+			Refresh();
+		}
 	}
 
 	private void MoveSelection(int offset)
@@ -228,7 +314,30 @@ public partial class InventoryUI : CanvasLayer
 		if (_selectedIndex >= _itemOrder.Count)
 			_selectedIndex = _itemOrder.Count - 1;
 
+		// Update weapon slot
+		UpdateWeaponSlot();
+
 		UpdateSlotVisuals();
+	}
+
+	private void UpdateWeaponSlot()
+	{
+		var weapon = Equipment.Instance.Weapon;
+		if (weapon.HasValue)
+		{
+			_weaponIcon.Texture = GetIconAtlas(weapon.Value);
+			_weaponIcon.Visible = true;
+			_weaponLabel.Text = ItemRegistry.GetName(weapon.Value);
+			int dmg = ItemRegistry.GetWeaponDamage(weapon.Value);
+			_damageLabel.Text = $"DMG: {dmg}";
+		}
+		else
+		{
+			_weaponIcon.Texture = null;
+			_weaponIcon.Visible = false;
+			_weaponLabel.Text = "None";
+			_damageLabel.Text = "DMG: 1";
+		}
 	}
 
 	private void CreateEmptySlot(int index)
@@ -303,7 +412,18 @@ public partial class InventoryUI : CanvasLayer
 			_detailIcon.Texture = GetIconAtlas(type);
 			_detailName.Text = $"{ItemRegistry.GetName(type)}  x{count}";
 			_detailCategory.Text = ItemRegistry.GetCategory(type).ToString().ToUpper();
-			_detailDesc.Text = ItemRegistry.GetDescription(type);
+
+			string desc = ItemRegistry.GetDescription(type);
+			int dmg = ItemRegistry.GetWeaponDamage(type);
+			if (dmg > 0)
+				desc += $"\nDamage: {dmg}";
+			_detailDesc.Text = desc;
+
+			// Show equip hint for weapons
+			if (ItemRegistry.GetCategory(type) == ItemCategory.Weapon)
+				_detailAction.Text = "[Enter] Equip";
+			else
+				_detailAction.Text = "";
 		}
 		else
 		{
@@ -317,6 +437,7 @@ public partial class InventoryUI : CanvasLayer
 		_detailName.Text = "";
 		_detailCategory.Text = "";
 		_detailDesc.Text = "Select an item to see details.";
+		_detailAction.Text = "";
 	}
 
 	private Texture2D GetCachedTexture(string path)

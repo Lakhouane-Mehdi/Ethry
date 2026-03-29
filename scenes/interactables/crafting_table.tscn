@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://biwj1dv1p6kdm"]
+
+[ext_resource type="Script" uid="uid://byox4ky14uoyk" path="res://scripts/CraftingTable.cs" id="1_craft"]
+[ext_resource type="Texture2D" uid="uid://q46mexfjvfta" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/House_Decor/Tables.png" id="2_cr43b"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u2rtu"]
+atlas = ExtResource("2_cr43b")
+region = Rect2(35.150764, 5.6149445, 25.972725, 27.051296)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cr43b"]
+radius = 22.36068
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_u2rtu"]
+radius = 10.0
+
+[node name="CraftingTable" type="Area2D" unique_id=1335985017]
+scale = Vector2(2, 2)
+script = ExtResource("1_craft")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1158197971]
+scale = Vector2(2, 2)
+texture = SubResource("AtlasTexture_u2rtu")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=714308902]
+shape = SubResource("CircleShape2D_cr43b")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1590993314]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=983134541]
+shape = SubResource("CircleShape2D_u2rtu")

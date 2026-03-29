@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://py3sl00mor4t"]
 
 [ext_resource type="PackedScene" uid="uid://7eqwbehk0vui" path="res://scenes/levels/base_level.tscn" id="1_g2h2n"]
-[ext_resource type="PackedScene" uid="uid://bnghordkpbfc0" path="res://scenes/enemies/slime.tscn" id="2_ra442"]
+[ext_resource type="PackedScene" uid="uid://bnghordkpbfc0" path="res://scenes/entities/enemies/slime.tscn" id="2_ra442"]
 
 [node name="levelroot2" unique_id=667194796 instance=ExtResource("1_g2h2n")]
 
