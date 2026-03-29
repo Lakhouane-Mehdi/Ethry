@@ -2,7 +2,7 @@
 
 A 2D top-down adventure game built with Godot 4.6 and C#.
 
-![Gameplay Screenshot](assets/screenshot.png)
+![Gameplay Screenshot](screenshot.png)
 ## Features
 
 - Player movement and animation
