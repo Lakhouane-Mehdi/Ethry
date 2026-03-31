@@ -1,211 +1,106 @@
 using Godot;
 
+/// <summary>
+/// Crafting UI — reads layout from scenes/ui/crafting_ui.tscn.
+/// All visual style comes from the cute_fantasy_ui asset pack.
+/// </summary>
 public partial class CraftingUI : CanvasLayer
 {
+	// ── Scene nodes ────────────────────────────────────────────────────────
 	private PanelContainer _panel;
-	private VBoxContainer _recipeList;
-	private TextureRect _resultIcon;
-	private Label _resultName;
-	private Label _resultDesc;
-	private VBoxContainer _ingredientList;
-	private Button _craftButton;
-	private int _selectedIndex;
+	private Label          _titleLabel;
+	private VBoxContainer  _recipeList;
+	private TextureRect    _resultIcon;
+	private Label          _resultName;
+	private Label          _resultDesc;
+	private VBoxContainer  _ingredientList;
+	private Button         _craftButton;
+
+	// ── State ──────────────────────────────────────────────────────────────
+	private int  _selectedIndex;
 	private bool _isOpen;
+	public  bool IsOpen => _isOpen;
+	private CraftingRecipe[] _recipes = CraftingRecipes.All;
 
-	public bool IsOpen => _isOpen;
-
-	private static readonly Color BgColor = new(0.12f, 0.08f, 0.06f, 0.95f);
-	private static readonly Color SlotColor = new(0.25f, 0.18f, 0.12f, 0.8f);
-	private static readonly Color SlotSelectedColor = new(0.6f, 0.45f, 0.2f, 0.9f);
-	private static readonly Color SlotBorder = new(0.45f, 0.32f, 0.18f, 1f);
-	private static readonly Color SlotSelectedBorder = new(0.9f, 0.7f, 0.3f, 1f);
-	private static readonly Color TitleColor = new(0.95f, 0.85f, 0.6f);
-	private static readonly Color TextColor = new(0.9f, 0.82f, 0.65f);
-	private static readonly Color TextDim = new(0.65f, 0.55f, 0.4f);
-	private static readonly Color GreenColor = new(0.4f, 0.85f, 0.4f);
-	private static readonly Color RedColor = new(0.9f, 0.35f, 0.3f);
-
+	// ── Asset constants ────────────────────────────────────────────────────
 	private readonly System.Collections.Generic.Dictionary<string, Texture2D> _textureCache = new();
 
+	private const string FramesPath   = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png";
+	private const string IconsPath   = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_icons.png";
+	private const string ButtonsPath = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_buttons.png";
+	private const string FontPath    = "res://assets/cute_fantasy_ui/cute_fantasy_ui/font.fnt";
+
+	// Button regions from ui_buttons.png — 47×14 cells
+	private static readonly Rect2 GreenBtnNormal  = new(288, 337, 47, 14);
+	private static readonly Rect2 GreenBtnHover   = new(336, 337, 47, 14);
+	private static readonly Rect2 GreenBtnPressed = new(384, 337, 47, 14);
+	private static readonly Rect2 BrownBtnNormal  = new(0,   337, 47, 14);
+	private static readonly Rect2 BrownBtnHover   = new(48,  337, 47, 14);
+	private static readonly Rect2 BrownBtnPressed = new(96,  337, 47, 14);
+
+	// Green checkmark and red X from ui_icons.png (16×16 grid)
+	private static readonly Rect2 CheckRegion = new(0, 32, 16, 16);
+	private static readonly Rect2 CrossRegion = new(96, 48, 16, 16);
+
+	// Recipe row styles colours matched to wood palette
+	private static readonly Color TextPrimary   = new(0.32f, 0.16f, 0.06f, 1f);
+	private static readonly Color TextSecondary = new(0.42f, 0.24f, 0.08f, 0.85f);
+	private static readonly Color IngredOk      = new(0.22f, 0.52f, 0.16f, 1f);
+	private static readonly Color IngredBad     = new(0.72f, 0.18f, 0.12f, 1f);
+
+	// ── Lifecycle ──────────────────────────────────────────────────────────
 	public override void _Ready()
 	{
-		Layer = 50;
-		ProcessMode = ProcessModeEnum.Always;
-		BuildUI();
-	}
+		_panel          = GetNode<PanelContainer>("Panel");
+		_titleLabel     = GetNode<Label>("Panel/MainVBox/TitleLabel");
+		_recipeList     = GetNode<VBoxContainer>("Panel/MainVBox/ContentHBox/LeftPanel/RecipeScroll/RecipeList");
+		_resultIcon     = GetNode<TextureRect>("Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox/ResultIcon");
+		_resultName     = GetNode<Label>("Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox/ResultVBox/ResultName");
+		_resultDesc     = GetNode<Label>("Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox/ResultVBox/ResultDesc");
+		_ingredientList = GetNode<VBoxContainer>("Panel/MainVBox/ContentHBox/RightPanel/RightVBox/IngredientList");
+		_craftButton    = GetNode<Button>("Panel/MainVBox/ContentHBox/RightPanel/RightVBox/CraftButton");
 
-	private StyleBoxFlat MakeStyleBox(Color bg, Color border, int borderWidth = 2, int cornerRadius = 4, int padding = 0)
-	{
-		var style = new StyleBoxFlat();
-		style.BgColor = bg;
-		style.BorderColor = border;
-		style.BorderWidthBottom = borderWidth;
-		style.BorderWidthTop = borderWidth;
-		style.BorderWidthLeft = borderWidth;
-		style.BorderWidthRight = borderWidth;
-		style.CornerRadiusTopLeft = cornerRadius;
-		style.CornerRadiusTopRight = cornerRadius;
-		style.CornerRadiusBottomLeft = cornerRadius;
-		style.CornerRadiusBottomRight = cornerRadius;
-		if (padding > 0)
-		{
-			style.ContentMarginLeft = padding;
-			style.ContentMarginRight = padding;
-			style.ContentMarginTop = padding;
-			style.ContentMarginBottom = padding;
-		}
-		return style;
-	}
-
-	private void BuildUI()
-	{
-		// Center panel
-		_panel = new PanelContainer();
-		_panel.AddThemeStyleboxOverride("panel", MakeStyleBox(BgColor, SlotBorder, 3, 8, 14));
-		_panel.SetAnchorsPreset(Control.LayoutPreset.Center);
-		_panel.OffsetLeft = -200;
-		_panel.OffsetTop = -180;
-		_panel.OffsetRight = 200;
-		_panel.OffsetBottom = 180;
-		_panel.Visible = false;
-		AddChild(_panel);
-
-		var mainVBox = new VBoxContainer();
-		mainVBox.AddThemeConstantOverride("separation", 8);
-		_panel.AddChild(mainVBox);
-
-		// Title
-		var title = new Label();
-		title.Text = "CRAFTING TABLE";
-		title.AddThemeColorOverride("font_color", TitleColor);
-		title.AddThemeFontSizeOverride("font_size", 16);
-		title.HorizontalAlignment = HorizontalAlignment.Center;
-		mainVBox.AddChild(title);
-
-		// Separator
-		var sep = new HSeparator();
-		sep.AddThemeConstantOverride("separation", 4);
-		mainVBox.AddChild(sep);
-
-		// Content: left recipes + right details
-		var hbox = new HBoxContainer();
-		hbox.AddThemeConstantOverride("separation", 12);
-		hbox.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-		mainVBox.AddChild(hbox);
-
-		// Left: recipe list in scroll
-		var leftPanel = new PanelContainer();
-		leftPanel.AddThemeStyleboxOverride("panel", MakeStyleBox(new Color(0.15f, 0.1f, 0.07f, 0.6f), SlotBorder, 1, 4, 4));
-		leftPanel.CustomMinimumSize = new Vector2(150, 0);
-		leftPanel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-		hbox.AddChild(leftPanel);
-
-		var scroll = new ScrollContainer();
-		scroll.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-		scroll.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-		leftPanel.AddChild(scroll);
-
-		_recipeList = new VBoxContainer();
-		_recipeList.AddThemeConstantOverride("separation", 3);
-		_recipeList.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-		scroll.AddChild(_recipeList);
-
-		// Right: detail panel
-		var rightPanel = new VBoxContainer();
-		rightPanel.AddThemeConstantOverride("separation", 8);
-		rightPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-		hbox.AddChild(rightPanel);
-
-		// Result header
-		var resultHBox = new HBoxContainer();
-		resultHBox.AddThemeConstantOverride("separation", 8);
-		rightPanel.AddChild(resultHBox);
-
-		_resultIcon = new TextureRect();
-		_resultIcon.CustomMinimumSize = new Vector2(40, 40);
-		_resultIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-		_resultIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-		_resultIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-		resultHBox.AddChild(_resultIcon);
-
-		var resultVBox = new VBoxContainer();
-		resultVBox.AddThemeConstantOverride("separation", 2);
-		resultHBox.AddChild(resultVBox);
-
-		_resultName = new Label();
-		_resultName.AddThemeColorOverride("font_color", TitleColor);
-		_resultName.AddThemeFontSizeOverride("font_size", 14);
-		resultVBox.AddChild(_resultName);
-
-		_resultDesc = new Label();
-		_resultDesc.AddThemeColorOverride("font_color", TextDim);
-		_resultDesc.AddThemeFontSizeOverride("font_size", 10);
-		_resultDesc.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		resultVBox.AddChild(_resultDesc);
-
-		// Separator
-		var sep2 = new HSeparator();
-		sep2.AddThemeConstantOverride("separation", 4);
-		rightPanel.AddChild(sep2);
-
-		// Ingredients label
-		var ingLabel = new Label();
-		ingLabel.Text = "INGREDIENTS";
-		ingLabel.AddThemeColorOverride("font_color", TextDim);
-		ingLabel.AddThemeFontSizeOverride("font_size", 10);
-		rightPanel.AddChild(ingLabel);
-
-		// Ingredient list
-		_ingredientList = new VBoxContainer();
-		_ingredientList.AddThemeConstantOverride("separation", 4);
-		_ingredientList.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-		rightPanel.AddChild(_ingredientList);
-
-		// Craft button
-		_craftButton = new Button();
-		_craftButton.Text = "CRAFT";
-		_craftButton.CustomMinimumSize = new Vector2(0, 32);
-		_craftButton.AddThemeColorOverride("font_color", TitleColor);
-		_craftButton.AddThemeFontSizeOverride("font_size", 13);
-		_craftButton.AddThemeStyleboxOverride("normal", MakeStyleBox(new Color(0.3f, 0.5f, 0.2f, 0.9f), new Color(0.5f, 0.7f, 0.3f), 2, 4, 4));
-		_craftButton.AddThemeStyleboxOverride("hover", MakeStyleBox(new Color(0.35f, 0.6f, 0.25f, 0.95f), new Color(0.6f, 0.8f, 0.35f), 2, 4, 4));
-		_craftButton.AddThemeStyleboxOverride("pressed", MakeStyleBox(new Color(0.2f, 0.4f, 0.15f, 1f), new Color(0.4f, 0.6f, 0.2f), 2, 4, 4));
-		_craftButton.AddThemeStyleboxOverride("disabled", MakeStyleBox(new Color(0.2f, 0.15f, 0.1f, 0.7f), SlotBorder, 2, 4, 4));
 		_craftButton.Pressed += OnCraftPressed;
-		rightPanel.AddChild(_craftButton);
 
-		// Close hint
-		var closeLabel = new Label();
-		closeLabel.Text = "[E] Close";
-		closeLabel.AddThemeColorOverride("font_color", TextDim);
-		closeLabel.AddThemeFontSizeOverride("font_size", 9);
-		closeLabel.HorizontalAlignment = HorizontalAlignment.Center;
-		mainVBox.AddChild(closeLabel);
+		// Bitmap pixel font
+		var font = new FontFile();
+		font.LoadBitmapFont(FontPath);
+		var theme = new Theme();
+		theme.DefaultFont = font;
+		_panel.Theme = theme;
+
+		// Textured button styles
+		ApplyButtonStyle(_craftButton, GreenBtnNormal, GreenBtnHover, GreenBtnPressed);
+		_craftButton.AddThemeStyleboxOverride("disabled", MakeBtnStyle(BrownBtnPressed));
 	}
 
-	public void Open()
+	// ── Public API ─────────────────────────────────────────────────────────
+	public void Open(CraftingRecipe[] recipes = null, string title = null)
 	{
-		_isOpen = true;
-		_panel.Visible = true;
-		_selectedIndex = 0;
+		if (recipes != null) _recipes = recipes;
+		if (title != null)   _titleLabel.Text = title;
+		_isOpen          = true;
+		_panel.Visible   = true;
+		_selectedIndex   = 0;
 		GetTree().Paused = true;
 		Refresh();
 	}
 
 	public void Close()
 	{
-		_isOpen = false;
-		_panel.Visible = false;
+		_isOpen          = false;
+		_panel.Visible   = false;
 		GetTree().Paused = false;
 	}
 
+	// ── Input ──────────────────────────────────────────────────────────────
 	public override void _UnhandledInput(InputEvent @event)
 	{
 		if (!_isOpen) return;
 
 		if (@event.IsActionPressed("ui_down"))
 		{
-			_selectedIndex = Mathf.Min(_selectedIndex + 1, CraftingRecipes.All.Length - 1);
+			_selectedIndex = Mathf.Min(_selectedIndex + 1, _recipes.Length - 1);
 			Refresh();
 			GetViewport().SetInputAsHandled();
 		}
@@ -222,134 +117,190 @@ public partial class CraftingUI : CanvasLayer
 		}
 	}
 
+	// ── Refresh ────────────────────────────────────────────────────────────
 	private void Refresh()
 	{
-		// Clear recipe list
-		foreach (Node child in _recipeList.GetChildren())
-			child.QueueFree();
+		// Rebuild recipe list
+		foreach (Node child in _recipeList.GetChildren()) child.QueueFree();
 
-		// Populate recipes
-		for (int i = 0; i < CraftingRecipes.All.Length; i++)
+		for (int i = 0; i < _recipes.Length; i++)
 		{
-			var recipe = CraftingRecipes.All[i];
+			var  recipe   = _recipes[i];
 			bool canCraft = CraftingRecipes.CanCraft(recipe);
 			bool selected = i == _selectedIndex;
 
-			var recipeBtn = new PanelContainer();
-			recipeBtn.AddThemeStyleboxOverride("panel", MakeStyleBox(
-				selected ? SlotSelectedColor : SlotColor,
-				selected ? SlotSelectedBorder : SlotBorder,
-				selected ? 2 : 1, 3, 4));
-			recipeBtn.CustomMinimumSize = new Vector2(0, 30);
+			var row = new PanelContainer();
+			row.CustomMinimumSize = new Vector2(0, 40);
+			row.AddThemeStyleboxOverride("panel", MakeRecipeStyle(selected));
 
 			var hbox = new HBoxContainer();
-			hbox.AddThemeConstantOverride("separation", 6);
-			recipeBtn.AddChild(hbox);
+			hbox.AddThemeConstantOverride("separation", 8);
+			row.AddChild(hbox);
 
-			// Recipe icon
 			var icon = new TextureRect();
-			icon.CustomMinimumSize = new Vector2(24, 24);
-			icon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-			icon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-			icon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-			icon.Texture = GetIconAtlas(recipe.Result);
-			icon.Modulate = canCraft ? Colors.White : new Color(1, 1, 1, 0.4f);
+			icon.CustomMinimumSize = new Vector2(32, 32);
+			icon.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
+			icon.StretchMode       = TextureRect.StretchModeEnum.KeepAspectCentered;
+			icon.TextureFilter     = CanvasItem.TextureFilterEnum.Nearest;
+			icon.Texture           = GetIconAtlas(recipe.Result);
+			icon.Modulate          = canCraft ? Colors.White : new Color(1, 1, 1, 0.38f);
+			icon.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
 			hbox.AddChild(icon);
 
-			// Recipe name
 			var nameLabel = new Label();
 			nameLabel.Text = ItemRegistry.GetName(recipe.Result);
-			nameLabel.AddThemeColorOverride("font_color", canCraft ? TextColor : TextDim);
-			nameLabel.AddThemeFontSizeOverride("font_size", 11);
 			nameLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+			nameLabel.SizeFlagsVertical   = Control.SizeFlags.ShrinkCenter;
+			nameLabel.AddThemeColorOverride("font_color", canCraft ? TextPrimary : TextSecondary);
+			nameLabel.AddThemeFontSizeOverride("font_size", 11);
 			hbox.AddChild(nameLabel);
 
-			// Click handler
+			// Invisible click button for mouse selection
 			var btn = new Button();
 			btn.Flat = true;
 			btn.SetAnchorsPreset(Control.LayoutPreset.FullRect);
 			btn.MouseFilter = Control.MouseFilterEnum.Stop;
-			int capturedI = i;
-			btn.Pressed += () => { _selectedIndex = capturedI; Refresh(); };
-			recipeBtn.AddChild(btn);
+			int captured = i;
+			btn.Pressed += () => { _selectedIndex = captured; Refresh(); };
+			row.AddChild(btn);
 
-			_recipeList.AddChild(recipeBtn);
+			_recipeList.AddChild(row);
 		}
 
-		// Update detail panel
-		if (_selectedIndex >= 0 && _selectedIndex < CraftingRecipes.All.Length)
+		// Update right-side detail panel
+		if (_recipes.Length == 0 || _selectedIndex >= _recipes.Length)
+			return;
+
+		var sel      = _recipes[_selectedIndex];
+		bool canMake = CraftingRecipes.CanCraft(sel);
+
+		_resultIcon.Texture = GetIconAtlas(sel.Result);
+		_resultName.Text    = sel.ResultAmount > 1
+			? $"{ItemRegistry.GetName(sel.Result)}  ×{sel.ResultAmount}"
+			: ItemRegistry.GetName(sel.Result);
+
+		string desc = ItemRegistry.GetDescription(sel.Result);
+		int dmg = ItemRegistry.GetWeaponDamage(sel.Result);
+		int arm = ItemRegistry.GetArmorRating(sel.Result);
+		string stats = "";
+		if (dmg > 0) stats += $"\nDamage: {dmg}";
+		if (arm > 0) stats += $"\nDefence: +{arm}";
+		_resultDesc.Text = desc + stats;
+
+		// Rebuild ingredient list
+		foreach (Node child in _ingredientList.GetChildren()) child.QueueFree();
+
+		foreach (var (ingType, amount) in sel.Ingredients)
 		{
-			var recipe = CraftingRecipes.All[_selectedIndex];
-			bool canCraft = CraftingRecipes.CanCraft(recipe);
+			var row = new HBoxContainer();
+			row.AddThemeConstantOverride("separation", 6);
 
-			_resultIcon.Texture = GetIconAtlas(recipe.Result);
-			_resultName.Text = recipe.ResultAmount > 1
-				? $"{ItemRegistry.GetName(recipe.Result)} x{recipe.ResultAmount}"
-				: ItemRegistry.GetName(recipe.Result);
-			_resultDesc.Text = ItemRegistry.GetDescription(recipe.Result);
+			var ingIcon = new TextureRect();
+			ingIcon.CustomMinimumSize = new Vector2(28, 28);
+			ingIcon.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
+			ingIcon.StretchMode       = TextureRect.StretchModeEnum.KeepAspectCentered;
+			ingIcon.TextureFilter     = CanvasItem.TextureFilterEnum.Nearest;
+			ingIcon.Texture           = GetIconAtlas(ingType);
+			ingIcon.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+			row.AddChild(ingIcon);
 
-			int dmg = ItemRegistry.GetWeaponDamage(recipe.Result);
-			if (dmg > 0)
-				_resultDesc.Text += $"\nDamage: {dmg}";
+			int  have   = Inventory.Instance.GetCount(ingType);
+			bool enough = have >= amount;
+			var  lbl    = new Label();
+			lbl.Text = $"{ItemRegistry.GetName(ingType)}   {have} / {amount}";
+			lbl.AddThemeColorOverride("font_color", enough ? IngredOk : IngredBad);
+			lbl.AddThemeFontSizeOverride("font_size", 11);
+			lbl.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+			lbl.SizeFlagsVertical   = Control.SizeFlags.ShrinkCenter;
+			row.AddChild(lbl);
 
-			// Ingredients
-			foreach (Node child in _ingredientList.GetChildren())
-				child.QueueFree();
+			var statusIcon = new TextureRect();
+			statusIcon.CustomMinimumSize = new Vector2(14, 14);
+			statusIcon.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
+			statusIcon.StretchMode       = TextureRect.StretchModeEnum.KeepAspectCentered;
+			statusIcon.TextureFilter     = CanvasItem.TextureFilterEnum.Nearest;
+			statusIcon.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+			var statusAtlas = new AtlasTexture();
+			statusAtlas.Atlas  = GetCachedTexture(IconsPath);
+			statusAtlas.Region = enough ? CheckRegion : CrossRegion;
+			statusIcon.Texture = statusAtlas;
+			row.AddChild(statusIcon);
 
-			foreach (var (type, amount) in recipe.Ingredients)
-			{
-				var ingHBox = new HBoxContainer();
-				ingHBox.AddThemeConstantOverride("separation", 6);
+			_ingredientList.AddChild(row);
+		}
 
-				var ingIcon = new TextureRect();
-				ingIcon.CustomMinimumSize = new Vector2(18, 18);
-				ingIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-				ingIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-				ingIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-				ingIcon.Texture = GetIconAtlas(type);
-				ingHBox.AddChild(ingIcon);
+		_craftButton.Disabled = !canMake;
+		_craftButton.Text     = canMake ? "   CRAFT" : "NOT ENOUGH MATERIALS";
+	}
 
-				int have = Inventory.Instance.GetCount(type);
-				bool enough = have >= amount;
-
-				var ingLabel = new Label();
-				ingLabel.Text = $"{ItemRegistry.GetName(type)}  {have}/{amount}";
-				ingLabel.AddThemeColorOverride("font_color", enough ? GreenColor : RedColor);
-				ingLabel.AddThemeFontSizeOverride("font_size", 11);
-				ingHBox.AddChild(ingLabel);
-
-				_ingredientList.AddChild(ingHBox);
-			}
-
-			_craftButton.Disabled = !canCraft;
-			_craftButton.Text = canCraft ? "CRAFT" : "NOT ENOUGH MATERIALS";
+	// ── Craft ──────────────────────────────────────────────────────────────
+	private void OnCraftPressed()
+	{
+		if (_selectedIndex < 0 || _selectedIndex >= _recipes.Length) return;
+		var recipe = _recipes[_selectedIndex];
+		if (CraftingRecipes.Craft(recipe))
+		{
+			NotificationManager.Instance?.ShowCraftSuccess(ItemRegistry.GetName(recipe.Result));
+			Refresh();
 		}
 	}
 
-	private void OnCraftPressed()
+	// ── Helpers ────────────────────────────────────────────────────────────
+	private StyleBoxTexture MakeRecipeStyle(bool selected)
 	{
-		if (_selectedIndex < 0 || _selectedIndex >= CraftingRecipes.All.Length) return;
+		// Frame[0,0] = normal row, Frame[0,1] = selected (lighter) from ui_frames.png
+		var atlas   = new AtlasTexture();
+		atlas.Atlas  = GetCachedTexture(FramesPath);
+		atlas.Region = selected ? new Rect2(52, 7, 40, 36) : new Rect2(4, 7, 40, 36);
 
-		var recipe = CraftingRecipes.All[_selectedIndex];
-		if (CraftingRecipes.Craft(recipe))
-			Refresh();
+		return new StyleBoxTexture
+		{
+			Texture             = atlas,
+			TextureMarginLeft   = 6f,
+			TextureMarginTop    = 5f,
+			TextureMarginRight  = 6f,
+			TextureMarginBottom = 5f,
+			ContentMarginLeft   = 4f,
+			ContentMarginTop    = 4f,
+			ContentMarginRight  = 4f,
+			ContentMarginBottom = 4f,
+		};
 	}
 
 	private Texture2D GetCachedTexture(string path)
 	{
 		if (!_textureCache.TryGetValue(path, out var tex))
-		{
-			tex = GD.Load<Texture2D>(path);
-			_textureCache[path] = tex;
-		}
+			_textureCache[path] = tex = GD.Load<Texture2D>(path);
 		return tex;
 	}
 
 	private AtlasTexture GetIconAtlas(ItemType type)
 	{
-		var atlas = new AtlasTexture();
-		atlas.Atlas = GetCachedTexture(ItemRegistry.GetIconTexturePath(type));
+		var atlas   = new AtlasTexture();
+		atlas.Atlas  = GetCachedTexture(ItemRegistry.GetIconTexturePath(type));
 		atlas.Region = ItemRegistry.GetIconRegion(type);
 		return atlas;
+	}
+
+	private StyleBoxTexture MakeBtnStyle(Rect2 region)
+	{
+		var atlas   = new AtlasTexture();
+		atlas.Atlas  = GetCachedTexture(ButtonsPath);
+		atlas.Region = region;
+		return new StyleBoxTexture
+		{
+			Texture             = atlas,
+			TextureMarginLeft   = 4f, TextureMarginTop    = 4f,
+			TextureMarginRight  = 4f, TextureMarginBottom = 4f,
+			ContentMarginLeft   = 6f, ContentMarginTop    = 4f,
+			ContentMarginRight  = 6f, ContentMarginBottom = 4f,
+		};
+	}
+
+	private void ApplyButtonStyle(Button btn, Rect2 normal, Rect2 hover, Rect2 pressed)
+	{
+		btn.AddThemeStyleboxOverride("normal",  MakeBtnStyle(normal));
+		btn.AddThemeStyleboxOverride("hover",   MakeBtnStyle(hover));
+		btn.AddThemeStyleboxOverride("pressed", MakeBtnStyle(pressed));
 	}
 }

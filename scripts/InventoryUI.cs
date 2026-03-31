@@ -1,460 +1,477 @@
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>
+/// Inventory UI driven by scenes/ui/inventory_ui.tscn.
+/// Features: 4 equipment slots, 5×4 item grid, hover tooltip,
+/// context-sensitive Use/Equip/Drop buttons, keyboard navigation.
+/// </summary>
 public partial class InventoryUI : CanvasLayer
 {
+	// ── Scene node references ──────────────────────────────────────────────
 	private PanelContainer _panel;
-	private GridContainer _grid;
-	private TextureRect _detailIcon;
-	private Label _detailName;
-	private Label _detailDesc;
-	private Label _detailCategory;
-	private Label _detailAction;
-	private PanelContainer _detailPanel;
-	private PanelContainer _weaponSlot;
-	private TextureRect _weaponIcon;
-	private Label _weaponLabel;
-	private Label _damageLabel;
-	private bool _isVisible;
-	private int _selectedIndex = -1;
+	private GridContainer  _slotsGrid;
+	// Equipment display slots
+	private TextureRect    _weaponIcon,  _headIcon,  _bodyIcon,  _bootsIcon;
+	// Stats row
+	private Label          _dmgLabel,    _defLabel;
+	// Detail panel
+	private TextureRect    _detailIcon;
+	private Label          _detailName,  _detailCategory, _detailDesc;
+	private Button         _actionBtn,   _dropBtn;
+	// Tooltip
+	private PanelContainer _tooltip;
+	private Label          _tooltipName, _tooltipDesc;
+
+	// ── State ──────────────────────────────────────────────────────────────
+	private bool               _isVisible;
+	private int                _selectedIndex = -1;
 	private readonly List<ItemType> _itemOrder = new();
 
-	private readonly Dictionary<string, Texture2D> _textureCache = new();
+	// ── Assets ────────────────────────────────────────────────────────────
+	private readonly Dictionary<string, Texture2D> _texCache = new();
 
-	private const int SlotSize = 48;
-	private const int IconSize = 32;
-	private const int Columns = 5;
-	private const int Rows = 4;
+	private const string FramesPath    = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png";
+	private const string SelectorsPath = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_selectors.png";
+	private const string ButtonsPath   = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_buttons.png";
+	private const string FontPath      = "res://assets/cute_fantasy_ui/cute_fantasy_ui/font.fnt";
 
-	private static readonly Color BgColor = new(0.12f, 0.08f, 0.06f, 0.92f);
-	private static readonly Color SlotColor = new(0.25f, 0.18f, 0.12f, 0.8f);
-	private static readonly Color SlotSelectedColor = new(0.6f, 0.45f, 0.2f, 0.9f);
-	private static readonly Color SlotBorder = new(0.45f, 0.32f, 0.18f, 1f);
-	private static readonly Color SlotSelectedBorder = new(0.9f, 0.7f, 0.3f, 1f);
-	private static readonly Color TitleColor = new(0.95f, 0.85f, 0.6f);
-	private static readonly Color TextColor = new(0.9f, 0.82f, 0.65f);
-	private static readonly Color TextDim = new(0.65f, 0.55f, 0.4f);
-	private static readonly Color EquipColor = new(0.3f, 0.2f, 0.45f, 0.8f);
-	private static readonly Color EquipBorder = new(0.55f, 0.4f, 0.7f, 1f);
+	// Button regions from ui_buttons.png — 47×14 cells at bottom rows
+	private static readonly Rect2 GreenBtnNormal  = new(288, 337, 47, 14);
+	private static readonly Rect2 GreenBtnHover   = new(336, 337, 47, 14);
+	private static readonly Rect2 GreenBtnPressed = new(384, 337, 47, 14);
+	private static readonly Rect2 RedBtnNormal    = new(720, 337, 47, 14);
+	private static readonly Rect2 RedBtnHover     = new(768, 337, 47, 14);
+	private static readonly Rect2 RedBtnPressed   = new(816, 337, 47, 14);
 
+	// Slot frame regions (ui_frames.png, measured in pixels)
+	private static readonly Rect2 FrameNormal   = new( 4,  7, 40, 36);
+	private static readonly Rect2 FrameSelected = new(52,  7, 40, 36);
+	// Green corner-bracket selector (ui_selectors.png)
+	private static readonly Rect2 SelectorRegion = new(0, 192, 16, 16);
+
+	private const int SlotPx = 60;
+	private const int IconPx = 40;
+	private const int Cols   = 5;
+	private const int Rows   = 4;
+
+	// ── Lifecycle ──────────────────────────────────────────────────────────
 	public override void _Ready()
 	{
-		BuildUI();
-		Inventory.Instance.Changed += Refresh;
-		Equipment.Instance.Changed += Refresh;
-	}
+		_panel     = GetNode<PanelContainer>("Panel");
+		_slotsGrid = GetNode<GridContainer>("Panel/VBox/SlotsGrid");
 
-	private StyleBoxFlat MakeStyleBox(Color bg, Color border, int borderWidth = 2, int cornerRadius = 4, int padding = 0)
-	{
-		var style = new StyleBoxFlat();
-		style.BgColor = bg;
-		style.BorderColor = border;
-		style.BorderWidthBottom = borderWidth;
-		style.BorderWidthTop = borderWidth;
-		style.BorderWidthLeft = borderWidth;
-		style.BorderWidthRight = borderWidth;
-		style.CornerRadiusTopLeft = cornerRadius;
-		style.CornerRadiusTopRight = cornerRadius;
-		style.CornerRadiusBottomLeft = cornerRadius;
-		style.CornerRadiusBottomRight = cornerRadius;
-		if (padding > 0)
-		{
-			style.ContentMarginLeft = padding;
-			style.ContentMarginRight = padding;
-			style.ContentMarginTop = padding;
-			style.ContentMarginBottom = padding;
-		}
-		return style;
-	}
+		// Equipment icons
+		_weaponIcon = GetNode<TextureRect>("Panel/VBox/EquipGrid/WeaponSlot/WeaponIcon");
+		_headIcon   = GetNode<TextureRect>("Panel/VBox/EquipGrid/HeadSlot/HeadIcon");
+		_bodyIcon   = GetNode<TextureRect>("Panel/VBox/EquipGrid/BodySlot/BodyIcon");
+		_bootsIcon  = GetNode<TextureRect>("Panel/VBox/EquipGrid/BootsSlot/BootsIcon");
 
-	private void BuildUI()
-	{
-		// Main panel
-		_panel = new PanelContainer();
-		_panel.AddThemeStyleboxOverride("panel", MakeStyleBox(BgColor, SlotBorder, 3, 8, 12));
-		_panel.SetAnchorsPreset(Control.LayoutPreset.TopRight);
-		_panel.OffsetLeft = -290;
-		_panel.OffsetTop = 10;
-		_panel.OffsetRight = -10;
-		_panel.OffsetBottom = 480;
-		_panel.Visible = false;
-		AddChild(_panel);
-
-		var vbox = new VBoxContainer();
-		vbox.AddThemeConstantOverride("separation", 6);
-		_panel.AddChild(vbox);
-
-		// Title
-		var title = new Label();
-		title.Text = "INVENTORY";
-		title.AddThemeColorOverride("font_color", TitleColor);
-		title.AddThemeFontSizeOverride("font_size", 16);
-		title.HorizontalAlignment = HorizontalAlignment.Center;
-		vbox.AddChild(title);
-
-		// Equipment section
-		var equipHBox = new HBoxContainer();
-		equipHBox.AddThemeConstantOverride("separation", 8);
-		equipHBox.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-		vbox.AddChild(equipHBox);
-
-		var weaponLabel = new Label();
-		weaponLabel.Text = "WEAPON:";
-		weaponLabel.AddThemeColorOverride("font_color", TextDim);
-		weaponLabel.AddThemeFontSizeOverride("font_size", 10);
-		weaponLabel.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-		equipHBox.AddChild(weaponLabel);
-
-		_weaponSlot = new PanelContainer();
-		_weaponSlot.AddThemeStyleboxOverride("panel", MakeStyleBox(EquipColor, EquipBorder, 2, 3, 2));
-		_weaponSlot.CustomMinimumSize = new Vector2(SlotSize, SlotSize);
-		equipHBox.AddChild(_weaponSlot);
-
-		_weaponIcon = new TextureRect();
-		_weaponIcon.SetAnchorsPreset(Control.LayoutPreset.Center);
-		_weaponIcon.OffsetLeft = -IconSize / 2;
-		_weaponIcon.OffsetTop = -IconSize / 2;
-		_weaponIcon.OffsetRight = IconSize / 2;
-		_weaponIcon.OffsetBottom = IconSize / 2;
-		_weaponIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-		_weaponIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-		_weaponIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-		_weaponIcon.MouseFilter = Control.MouseFilterEnum.Ignore;
-		_weaponSlot.AddChild(_weaponIcon);
-
-		// Click to unequip
-		var unequipBtn = new Button();
-		unequipBtn.Flat = true;
-		unequipBtn.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-		unequipBtn.MouseFilter = Control.MouseFilterEnum.Stop;
-		unequipBtn.Pressed += () =>
-		{
-			Equipment.Instance.Unequip();
-			Refresh();
-		};
-		_weaponSlot.AddChild(unequipBtn);
-
-		// Damage info next to weapon slot
-		var equipInfo = new VBoxContainer();
-		equipInfo.AddThemeConstantOverride("separation", 0);
-		equipInfo.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-		equipHBox.AddChild(equipInfo);
-
-		_weaponLabel = new Label();
-		_weaponLabel.AddThemeColorOverride("font_color", TextColor);
-		_weaponLabel.AddThemeFontSizeOverride("font_size", 11);
-		equipInfo.AddChild(_weaponLabel);
-
-		_damageLabel = new Label();
-		_damageLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.4f, 0.3f));
-		_damageLabel.AddThemeFontSizeOverride("font_size", 10);
-		equipInfo.AddChild(_damageLabel);
-
-		// Separator
-		var sep = new HSeparator();
-		sep.AddThemeStyleboxOverride("separator", MakeStyleBox(SlotBorder, SlotBorder, 0, 0));
-		sep.AddThemeConstantOverride("separation", 4);
-		vbox.AddChild(sep);
-
-		// Grid for item slots
-		_grid = new GridContainer();
-		_grid.Columns = Columns;
-		_grid.AddThemeConstantOverride("h_separation", 4);
-		_grid.AddThemeConstantOverride("v_separation", 4);
-		_grid.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-		vbox.AddChild(_grid);
-
-		// Create empty slots
-		for (int i = 0; i < Columns * Rows; i++)
-			CreateEmptySlot(i);
-
-		// Separator before detail
-		var sep2 = new HSeparator();
-		sep2.AddThemeStyleboxOverride("separator", MakeStyleBox(SlotBorder, SlotBorder, 0, 0));
-		sep2.AddThemeConstantOverride("separation", 4);
-		vbox.AddChild(sep2);
+		// Stats
+		_dmgLabel = GetNode<Label>("Panel/VBox/StatsRow/DmgLabel");
+		_defLabel = GetNode<Label>("Panel/VBox/StatsRow/DefLabel");
 
 		// Detail panel
-		_detailPanel = new PanelContainer();
-		_detailPanel.AddThemeStyleboxOverride("panel", MakeStyleBox(new Color(0.18f, 0.12f, 0.08f, 0.7f), SlotBorder, 1, 4, 8));
-		_detailPanel.CustomMinimumSize = new Vector2(0, 90);
-		vbox.AddChild(_detailPanel);
+		_detailIcon     = GetNode<TextureRect>("Panel/VBox/DetailPanel/DetailVBox/DetailTopRow/DetailIcon");
+		_detailName     = GetNode<Label>("Panel/VBox/DetailPanel/DetailVBox/DetailTopRow/DetailTextVBox/DetailName");
+		_detailCategory = GetNode<Label>("Panel/VBox/DetailPanel/DetailVBox/DetailTopRow/DetailTextVBox/DetailCategory");
+		_detailDesc     = GetNode<Label>("Panel/VBox/DetailPanel/DetailVBox/DetailTopRow/DetailTextVBox/DetailDesc");
+		_actionBtn      = GetNode<Button>("Panel/VBox/DetailPanel/DetailVBox/ActionRow/ActionBtn");
+		_dropBtn        = GetNode<Button>("Panel/VBox/DetailPanel/DetailVBox/ActionRow/DropBtn");
 
-		var detailHBox = new HBoxContainer();
-		detailHBox.AddThemeConstantOverride("separation", 10);
-		_detailPanel.AddChild(detailHBox);
+		// Tooltip (child of InventoryUI CanvasLayer, not of Panel)
+		_tooltip     = GetNode<PanelContainer>("Tooltip");
+		_tooltipName = GetNode<Label>("Tooltip/TooltipVBox/TooltipName");
+		_tooltipDesc = GetNode<Label>("Tooltip/TooltipVBox/TooltipDesc");
 
-		// Detail icon
-		_detailIcon = new TextureRect();
-		_detailIcon.CustomMinimumSize = new Vector2(40, 40);
-		_detailIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-		_detailIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-		_detailIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-		detailHBox.AddChild(_detailIcon);
+		// Bitmap pixel font
+		var font = new FontFile();
+		font.LoadBitmapFont(FontPath);
+		var theme = new Theme();
+		theme.DefaultFont = font;
+		_panel.Theme = theme;
 
-		var detailVBox = new VBoxContainer();
-		detailVBox.AddThemeConstantOverride("separation", 2);
-		detailVBox.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-		detailHBox.AddChild(detailVBox);
+		// Textured button styles
+		ApplyButtonStyle(_actionBtn, GreenBtnNormal, GreenBtnHover, GreenBtnPressed);
+		ApplyButtonStyle(_dropBtn,   RedBtnNormal,   RedBtnHover,   RedBtnPressed);
 
-		// Detail name
-		_detailName = new Label();
-		_detailName.AddThemeColorOverride("font_color", TitleColor);
-		_detailName.AddThemeFontSizeOverride("font_size", 13);
-		detailVBox.AddChild(_detailName);
+		// Action button handlers
+		_actionBtn.Pressed += OnActionPressed;
+		_dropBtn.Pressed   += OnDropPressed;
 
-		// Detail category
-		_detailCategory = new Label();
-		_detailCategory.AddThemeColorOverride("font_color", TextDim);
-		_detailCategory.AddThemeFontSizeOverride("font_size", 10);
-		detailVBox.AddChild(_detailCategory);
+		// Equipment slot unequip buttons
+		GetNode<Button>("Panel/VBox/EquipGrid/WeaponSlot/WeaponBtn").Pressed += () => Unequip(EquipSlot.Weapon);
+		GetNode<Button>("Panel/VBox/EquipGrid/HeadSlot/HeadBtn").Pressed     += () => Unequip(EquipSlot.Head);
+		GetNode<Button>("Panel/VBox/EquipGrid/BodySlot/BodyBtn").Pressed     += () => Unequip(EquipSlot.Body);
+		GetNode<Button>("Panel/VBox/EquipGrid/BootsSlot/BootsBtn").Pressed   += () => Unequip(EquipSlot.Boots);
 
-		// Detail description
-		_detailDesc = new Label();
-		_detailDesc.AddThemeColorOverride("font_color", TextColor);
-		_detailDesc.AddThemeFontSizeOverride("font_size", 11);
-		_detailDesc.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		detailVBox.AddChild(_detailDesc);
+		// Build slot grid nodes (structure fixed, content populated in Refresh)
+		for (int i = 0; i < Cols * Rows; i++)
+			_slotsGrid.AddChild(BuildSlot(i));
 
-		// Action hint
-		_detailAction = new Label();
-		_detailAction.AddThemeColorOverride("font_color", new Color(0.5f, 0.8f, 0.5f));
-		_detailAction.AddThemeFontSizeOverride("font_size", 10);
-		detailVBox.AddChild(_detailAction);
+		Inventory.Instance.Changed += Refresh;
+		Equipment.Instance.Changed += Refresh;
 
 		ClearDetail();
 	}
 
+	// ── Input ──────────────────────────────────────────────────────────────
 	public override void _UnhandledInput(InputEvent @event)
 	{
 		if (@event.IsActionPressed("toggle_inventory"))
 		{
-			_isVisible = !_isVisible;
+			_isVisible     = !_isVisible;
 			_panel.Visible = _isVisible;
-			if (_isVisible)
-			{
-				_selectedIndex = -1;
-				Refresh();
-			}
+			_tooltip.Visible = false;
+			if (_isVisible) { _selectedIndex = -1; Refresh(); }
+			GetViewport().SetInputAsHandled();
+			return;
 		}
 
 		if (!_isVisible) return;
 
-		if (@event.IsActionPressed("ui_right"))
-			MoveSelection(1);
-		else if (@event.IsActionPressed("ui_left"))
-			MoveSelection(-1);
-		else if (@event.IsActionPressed("ui_down"))
-			MoveSelection(Columns);
-		else if (@event.IsActionPressed("ui_up"))
-			MoveSelection(-Columns);
-		else if (@event.IsActionPressed("ui_accept"))
-			TryEquipSelected();
+		if      (@event.IsActionPressed("ui_right")) Move( 1);
+		else if (@event.IsActionPressed("ui_left"))  Move(-1);
+		else if (@event.IsActionPressed("ui_down"))  Move( Cols);
+		else if (@event.IsActionPressed("ui_up"))    Move(-Cols);
+		else if (@event.IsActionPressed("ui_accept")) OnActionPressed();
 	}
 
-	private void TryEquipSelected()
-	{
-		if (_selectedIndex < 0 || _selectedIndex >= _itemOrder.Count) return;
-
-		var type = _itemOrder[_selectedIndex];
-		if (ItemRegistry.GetCategory(type) == ItemCategory.Weapon)
-		{
-			Equipment.Instance.Equip(type);
-			Refresh();
-		}
-	}
-
-	private void MoveSelection(int offset)
-	{
-		if (_itemOrder.Count == 0) return;
-
-		if (_selectedIndex < 0)
-			_selectedIndex = 0;
-		else
-			_selectedIndex = Mathf.Clamp(_selectedIndex + offset, 0, _itemOrder.Count - 1);
-
-		UpdateSlotVisuals();
-	}
-
-	private void Refresh()
-	{
-		_itemOrder.Clear();
-
-		foreach (var (type, count) in Inventory.Instance.Items)
-		{
-			if (count <= 0) continue;
-			_itemOrder.Add(type);
-		}
-
-		// Update all slots
-		for (int i = 0; i < Columns * Rows; i++)
-		{
-			var slot = _grid.GetChild(i) as PanelContainer;
-			var icon = slot.GetNode<TextureRect>("Icon");
-			var countLabel = slot.GetNode<Label>("Count");
-
-			if (i < _itemOrder.Count)
-			{
-				var type = _itemOrder[i];
-				var count = Inventory.Instance.GetCount(type);
-				icon.Texture = GetIconAtlas(type);
-				icon.Visible = true;
-				countLabel.Text = count > 1 ? count.ToString() : "";
-				countLabel.Visible = count > 1;
-			}
-			else
-			{
-				icon.Texture = null;
-				icon.Visible = false;
-				countLabel.Text = "";
-				countLabel.Visible = false;
-			}
-		}
-
-		if (_selectedIndex >= _itemOrder.Count)
-			_selectedIndex = _itemOrder.Count - 1;
-
-		// Update weapon slot
-		UpdateWeaponSlot();
-
-		UpdateSlotVisuals();
-	}
-
-	private void UpdateWeaponSlot()
-	{
-		var weapon = Equipment.Instance.Weapon;
-		if (weapon.HasValue)
-		{
-			_weaponIcon.Texture = GetIconAtlas(weapon.Value);
-			_weaponIcon.Visible = true;
-			_weaponLabel.Text = ItemRegistry.GetName(weapon.Value);
-			int dmg = ItemRegistry.GetWeaponDamage(weapon.Value);
-			_damageLabel.Text = $"DMG: {dmg}";
-		}
-		else
-		{
-			_weaponIcon.Texture = null;
-			_weaponIcon.Visible = false;
-			_weaponLabel.Text = "None";
-			_damageLabel.Text = "DMG: 1";
-		}
-	}
-
-	private void CreateEmptySlot(int index)
+	// ── Slot construction ──────────────────────────────────────────────────
+	private Control BuildSlot(int index)
 	{
 		var slot = new PanelContainer();
-		slot.AddThemeStyleboxOverride("panel", MakeStyleBox(SlotColor, SlotBorder, 2, 3, 2));
-		slot.CustomMinimumSize = new Vector2(SlotSize, SlotSize);
+		slot.CustomMinimumSize = new Vector2(SlotPx, SlotPx);
+		slot.AddThemeStyleboxOverride("panel", MakeSlotStyle(false));
 
-		// Icon
-		var icon = new TextureRect();
-		icon.Name = "Icon";
+		// Item icon
+		var icon = new TextureRect { Name = "Icon" };
 		icon.SetAnchorsPreset(Control.LayoutPreset.Center);
-		icon.OffsetLeft = -IconSize / 2;
-		icon.OffsetTop = -IconSize / 2;
-		icon.OffsetRight = IconSize / 2;
-		icon.OffsetBottom = IconSize / 2;
-		icon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-		icon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-		icon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-		icon.MouseFilter = Control.MouseFilterEnum.Ignore;
+		icon.OffsetLeft   = -IconPx / 2f;  icon.OffsetTop    = -IconPx / 2f;
+		icon.OffsetRight  =  IconPx / 2f;  icon.OffsetBottom =  IconPx / 2f;
+		icon.ExpandMode   = TextureRect.ExpandModeEnum.IgnoreSize;
+		icon.StretchMode  = TextureRect.StretchModeEnum.KeepAspectCentered;
+		icon.TextureFilter= CanvasItem.TextureFilterEnum.Nearest;
+		icon.MouseFilter  = Control.MouseFilterEnum.Ignore;
 		icon.Visible = false;
 		slot.AddChild(icon);
 
-		// Count label
-		var countLabel = new Label();
-		countLabel.Name = "Count";
-		countLabel.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
-		countLabel.OffsetLeft = -24;
-		countLabel.OffsetTop = -16;
-		countLabel.HorizontalAlignment = HorizontalAlignment.Right;
-		countLabel.AddThemeColorOverride("font_color", Colors.White);
-		countLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.9f));
-		countLabel.AddThemeFontSizeOverride("font_size", 11);
-		countLabel.AddThemeConstantOverride("shadow_offset_x", 1);
-		countLabel.AddThemeConstantOverride("shadow_offset_y", 1);
-		countLabel.MouseFilter = Control.MouseFilterEnum.Ignore;
-		countLabel.Visible = false;
-		slot.AddChild(countLabel);
+		// Stack count label
+		var count = new Label { Name = "Count" };
+		count.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
+		count.OffsetLeft = -22; count.OffsetTop = -14;
+		count.HorizontalAlignment = HorizontalAlignment.Right;
+		count.AddThemeColorOverride("font_color",        new Color(0.9f, 0.85f, 0.6f));
+		count.AddThemeColorOverride("font_shadow_color", new Color(0f, 0f, 0f, 0.85f));
+		count.AddThemeFontSizeOverride("font_size", 10);
+		count.AddThemeConstantOverride("shadow_offset_x", 1);
+		count.AddThemeConstantOverride("shadow_offset_y", 1);
+		count.MouseFilter = Control.MouseFilterEnum.Ignore;
+		count.Visible = false;
+		slot.AddChild(count);
 
-		// Invisible click button
-		var button = new Button();
-		button.Flat = true;
-		button.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-		button.MouseFilter = Control.MouseFilterEnum.Stop;
-		int capturedIndex = index;
-		button.Pressed += () =>
+		// Green corner-bracket selection overlay
+		var sel = new TextureRect { Name = "Selector" };
+		sel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		sel.ExpandMode    = TextureRect.ExpandModeEnum.IgnoreSize;
+		sel.StretchMode   = TextureRect.StretchModeEnum.Scale;
+		sel.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+		sel.MouseFilter   = Control.MouseFilterEnum.Ignore;
+		sel.Visible = false;
+		var selAtlas = new AtlasTexture();
+		selAtlas.Atlas  = GetTex(SelectorsPath);
+		selAtlas.Region = SelectorRegion;
+		sel.Texture = selAtlas;
+		slot.AddChild(sel);
+
+		// Invisible button on top to handle click + hover
+		var btn = new Button { Flat = true };
+		btn.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		btn.MouseFilter = Control.MouseFilterEnum.Stop;
+		int cap = index;
+		btn.Pressed               += () => { _selectedIndex = cap; UpdateSlotVisuals(); };
+		btn.MouseEntered          += () => ShowTooltip(cap);
+		btn.MouseExited           += () => _tooltip.Visible = false;
+		slot.AddChild(btn);
+
+		return slot;
+	}
+
+	// ── Refresh ────────────────────────────────────────────────────────────
+	private void Refresh()
+	{
+		// Rebuild ordered item list
+		_itemOrder.Clear();
+		foreach (var (type, cnt) in Inventory.Instance.Items)
+			if (cnt > 0) _itemOrder.Add(type);
+
+		// Update grid slots
+		for (int i = 0; i < Cols * Rows; i++)
 		{
-			_selectedIndex = capturedIndex;
-			UpdateSlotVisuals();
-		};
-		slot.AddChild(button);
+			var slot     = _slotsGrid.GetChild<PanelContainer>(i);
+			var icon     = slot.GetNode<TextureRect>("Icon");
+			var countLbl = slot.GetNode<Label>("Count");
 
-		_grid.AddChild(slot);
+			if (i < _itemOrder.Count)
+			{
+				var type  = _itemOrder[i];
+				int stack = Inventory.Instance.GetCount(type);
+				icon.Texture     = GetIconAtlas(type);
+				icon.Visible     = true;
+				countLbl.Text    = stack > 1 ? stack.ToString() : "";
+				countLbl.Visible = stack > 1;
+			}
+			else
+			{
+				icon.Texture     = null;
+				icon.Visible     = false;
+				countLbl.Visible = false;
+			}
+		}
+
+		// Clamp selection
+		if (_selectedIndex >= _itemOrder.Count)
+			_selectedIndex = _itemOrder.Count - 1;
+
+		RefreshEquipSlots();
+		UpdateSlotVisuals();
+	}
+
+	private void RefreshEquipSlots()
+	{
+		RefreshOneEquipSlot(_weaponIcon, EquipSlot.Weapon);
+		RefreshOneEquipSlot(_headIcon,   EquipSlot.Head);
+		RefreshOneEquipSlot(_bodyIcon,   EquipSlot.Body);
+		RefreshOneEquipSlot(_bootsIcon,  EquipSlot.Boots);
+
+		_dmgLabel.Text = $"DMG: {Equipment.Instance.GetAttackDamage()}";
+		_defLabel.Text = $"DEF: {Equipment.Instance.GetTotalDefence()}";
+	}
+
+	private static readonly Color PlaceholderTint = new(1f, 1f, 1f, 0.2f);
+
+	private static ItemType GetPlaceholderType(EquipSlot slot) => slot switch
+	{
+		EquipSlot.Weapon => ItemType.IronSword,
+		EquipSlot.Head   => ItemType.LeatherHelmet,
+		EquipSlot.Body   => ItemType.LeatherArmor,
+		EquipSlot.Boots  => ItemType.LeatherBoots,
+		_                => ItemType.IronSword
+	};
+
+	private void RefreshOneEquipSlot(TextureRect icon, EquipSlot slot)
+	{
+		var item = Equipment.Instance.GetSlot(slot);
+		if (item.HasValue)
+		{
+			icon.Texture  = GetIconAtlas(item.Value);
+			icon.Modulate = Colors.White;
+			icon.Visible  = true;
+		}
+		else
+		{
+			icon.Texture  = GetIconAtlas(GetPlaceholderType(slot));
+			icon.Modulate = PlaceholderTint;
+			icon.Visible  = true;
+		}
 	}
 
 	private void UpdateSlotVisuals()
 	{
-		for (int i = 0; i < Columns * Rows; i++)
+		for (int i = 0; i < Cols * Rows; i++)
 		{
-			var slot = _grid.GetChild(i) as PanelContainer;
-			bool selected = i == _selectedIndex && i < _itemOrder.Count;
-			slot.AddThemeStyleboxOverride("panel", MakeStyleBox(
-				selected ? SlotSelectedColor : SlotColor,
-				selected ? SlotSelectedBorder : SlotBorder,
-				selected ? 3 : 2, 3, 2));
+			bool selected = (i == _selectedIndex && i < _itemOrder.Count);
+			var  slot     = _slotsGrid.GetChild<PanelContainer>(i);
+			slot.AddThemeStyleboxOverride("panel", MakeSlotStyle(selected));
+			slot.GetNode<TextureRect>("Selector").Visible = selected;
 		}
 
 		if (_selectedIndex >= 0 && _selectedIndex < _itemOrder.Count)
+			ShowDetail(_itemOrder[_selectedIndex]);
+		else
+			ClearDetail();
+	}
+
+	// ── Tooltip ────────────────────────────────────────────────────────────
+	private void ShowTooltip(int index)
+	{
+		if (index >= _itemOrder.Count) { _tooltip.Visible = false; return; }
+
+		var   type = _itemOrder[index];
+		_tooltipName.Text = ItemRegistry.GetName(type);
+		_tooltipDesc.Text = ItemRegistry.GetDescription(type);
+		_tooltip.Visible  = true;
+
+		// Position near but not under the cursor, clamped to screen
+		var mouse    = _tooltip.GetViewport().GetMousePosition();
+		var viewSize = _tooltip.GetViewportRect().Size;
+		var tipSize  = _tooltip.Size;
+		float x = Mathf.Clamp(mouse.X + 12f, 0, viewSize.X - tipSize.X);
+		float y = Mathf.Clamp(mouse.Y + 12f, 0, viewSize.Y - tipSize.Y);
+		_tooltip.Position = new Vector2(x, y);
+	}
+
+	// ── Detail panel ───────────────────────────────────────────────────────
+	private void ShowDetail(ItemType type)
+	{
+		int stack = Inventory.Instance.GetCount(type);
+		int dmg   = ItemRegistry.GetWeaponDamage(type);
+		int arm   = ItemRegistry.GetArmorRating(type);
+		int heal  = ItemRegistry.GetHealAmount(type);
+		var cat   = ItemRegistry.GetCategory(type);
+
+		_detailIcon.Texture  = GetIconAtlas(type);
+		_detailName.Text     = $"{ItemRegistry.GetName(type)}  ×{stack}";
+		_detailCategory.Text = cat.ToString().ToUpper();
+
+		string desc = ItemRegistry.GetDescription(type);
+		if (dmg  > 0) desc += $"\nDamage: {dmg}";
+		if (arm  > 0) desc += $"\nDefence: +{arm}";
+		_detailDesc.Text = desc;
+
+		// Action button — label changes based on category, hides if irrelevant
+		EquipSlot? slot = ItemRegistry.GetEquipSlot(type);
+		if (slot.HasValue)
 		{
-			var type = _itemOrder[_selectedIndex];
-			var count = Inventory.Instance.GetCount(type);
-			_detailIcon.Texture = GetIconAtlas(type);
-			_detailName.Text = $"{ItemRegistry.GetName(type)}  x{count}";
-			_detailCategory.Text = ItemRegistry.GetCategory(type).ToString().ToUpper();
-
-			string desc = ItemRegistry.GetDescription(type);
-			int dmg = ItemRegistry.GetWeaponDamage(type);
-			if (dmg > 0)
-				desc += $"\nDamage: {dmg}";
-			_detailDesc.Text = desc;
-
-			// Show equip hint for weapons
-			if (ItemRegistry.GetCategory(type) == ItemCategory.Weapon)
-				_detailAction.Text = "[Enter] Equip";
-			else
-				_detailAction.Text = "";
+			_actionBtn.Text    = cat == ItemCategory.Armor ? "Equip Armor" : "Equip";
+			_actionBtn.Visible = true;
+		}
+		else if (heal > 0)
+		{
+			var player = GetTree().GetFirstNodeInGroup("player") as Player;
+			_actionBtn.Text    = "Use";
+			_actionBtn.Visible = player != null && player.Health < player.MaxHealth;
 		}
 		else
 		{
-			ClearDetail();
+			_actionBtn.Visible = false;
 		}
+
+		_dropBtn.Visible = true;
 	}
 
 	private void ClearDetail()
 	{
-		_detailIcon.Texture = null;
-		_detailName.Text = "";
+		_detailIcon.Texture  = null;
+		_detailName.Text     = "";
 		_detailCategory.Text = "";
-		_detailDesc.Text = "Select an item to see details.";
-		_detailAction.Text = "";
+		_detailDesc.Text     = "Select an item to see details.";
+		_actionBtn.Visible   = false;
+		_dropBtn.Visible     = false;
 	}
 
-	private Texture2D GetCachedTexture(string path)
+	// ── Actions ────────────────────────────────────────────────────────────
+	private void OnActionPressed()
 	{
-		if (!_textureCache.TryGetValue(path, out var tex))
+		if (_selectedIndex < 0 || _selectedIndex >= _itemOrder.Count) return;
+		var type = _itemOrder[_selectedIndex];
+		var cat  = ItemRegistry.GetCategory(type);
+
+		if (cat is ItemCategory.Weapon or ItemCategory.Armor or ItemCategory.Tool)
 		{
-			tex = GD.Load<Texture2D>(path);
-			_textureCache[path] = tex;
+			Equipment.Instance.Equip(type);
 		}
+		else if (cat is ItemCategory.Food or ItemCategory.Potion)
+		{
+			var player = GetTree().GetFirstNodeInGroup("player") as Player;
+			if (player != null && player.UseConsumable(type))
+				NotificationManager.Instance?.ShowHeal(ItemRegistry.GetHealAmount(type));
+		}
+
+		Refresh();
+	}
+
+	private void OnDropPressed()
+	{
+		if (_selectedIndex < 0 || _selectedIndex >= _itemOrder.Count) return;
+		var type = _itemOrder[_selectedIndex];
+
+		if (!Inventory.Instance.RemoveItem(type)) return;
+
+		// Spawn pickup near player in the current scene
+		var player = GetTree().GetFirstNodeInGroup("player") as Node2D;
+		if (player != null)
+		{
+			var scene  = GD.Load<PackedScene>("res://scenes/items/item_pickup.tscn");
+			var pickup = scene?.Instantiate<Node2D>();
+			if (pickup != null)
+			{
+				pickup.Set("Type",   (int)type);
+				pickup.Set("Amount", 1);
+				pickup.GlobalPosition = player.GlobalPosition + new Vector2(12f, 0f);
+				player.GetParent().AddChild(pickup);
+			}
+		}
+
+		Refresh();
+	}
+
+	private void Unequip(EquipSlot slot)
+	{
+		Equipment.Instance.Unequip(slot);
+		Refresh();
+	}
+
+	private void Move(int delta)
+	{
+		if (_itemOrder.Count == 0) return;
+		_selectedIndex = _selectedIndex < 0
+			? 0
+			: Mathf.Clamp(_selectedIndex + delta, 0, _itemOrder.Count - 1);
+		UpdateSlotVisuals();
+	}
+
+	// ── Helpers ────────────────────────────────────────────────────────────
+	private StyleBoxTexture MakeSlotStyle(bool selected)
+	{
+		var atlas   = new AtlasTexture();
+		atlas.Atlas  = GetTex(FramesPath);
+		atlas.Region = selected ? FrameSelected : FrameNormal;
+
+		return new StyleBoxTexture
+		{
+			Texture             = atlas,
+			TextureMarginLeft   = 6f, TextureMarginTop    = 5f,
+			TextureMarginRight  = 6f, TextureMarginBottom = 5f,
+			ContentMarginLeft   = 3f, ContentMarginTop    = 3f,
+			ContentMarginRight  = 3f, ContentMarginBottom = 3f,
+		};
+	}
+
+	private Texture2D GetTex(string path)
+	{
+		if (!_texCache.TryGetValue(path, out var tex))
+			_texCache[path] = tex = GD.Load<Texture2D>(path);
 		return tex;
 	}
 
 	private AtlasTexture GetIconAtlas(ItemType type)
 	{
-		var atlas = new AtlasTexture();
-		atlas.Atlas = GetCachedTexture(ItemRegistry.GetIconTexturePath(type));
+		var atlas   = new AtlasTexture();
+		atlas.Atlas  = GetTex(ItemRegistry.GetIconTexturePath(type));
 		atlas.Region = ItemRegistry.GetIconRegion(type);
 		return atlas;
+	}
+
+	private StyleBoxTexture MakeBtnStyle(Rect2 region)
+	{
+		var atlas   = new AtlasTexture();
+		atlas.Atlas  = GetTex(ButtonsPath);
+		atlas.Region = region;
+		return new StyleBoxTexture
+		{
+			Texture             = atlas,
+			TextureMarginLeft   = 4f, TextureMarginTop    = 4f,
+			TextureMarginRight  = 4f, TextureMarginBottom = 4f,
+			ContentMarginLeft   = 6f, ContentMarginTop    = 4f,
+			ContentMarginRight  = 6f, ContentMarginBottom = 4f,
+		};
+	}
+
+	private void ApplyButtonStyle(Button btn, Rect2 normal, Rect2 hover, Rect2 pressed)
+	{
+		btn.AddThemeStyleboxOverride("normal",  MakeBtnStyle(normal));
+		btn.AddThemeStyleboxOverride("hover",   MakeBtnStyle(hover));
+		btn.AddThemeStyleboxOverride("pressed", MakeBtnStyle(pressed));
 	}
 }

@@ -16,6 +16,9 @@
 [ext_resource type="PackedScene" uid="uid://bwlapqw1ld6ku" path="res://scenes/ui/inventory_ui.tscn" id="13_inv"]
 [ext_resource type="Script" uid="uid://d0lgeietpqx6e" path="res://scripts/Exit.cs" id="14_exit"]
 [ext_resource type="PackedScene" uid="uid://biwj1dv1p6kdm" path="res://scenes/interactables/crafting_table.tscn" id="15_craft"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/furnace.tscn" id="16_furnace"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/anvil.tscn" id="17_anvil"]
+[ext_resource type="PackedScene" path="res://scenes/entities/npcs/npc_chloe.tscn" id="18_chloe"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_2swbv"]
 texture = ExtResource("1_44jyu")
@@ -1515,5 +1518,14 @@ shape = SubResource("RectangleShape2D_exit")
 
 [node name="CraftingTable" parent="." unique_id=1813959579 instance=ExtResource("15_craft")]
 position = Vector2(266, 158)
+
+[node name="Furnace" parent="." instance=ExtResource("16_furnace")]
+position = Vector2(406, 158)
+
+[node name="Anvil" parent="." instance=ExtResource("17_anvil")]
+position = Vector2(476, 158)
+
+[node name="ChefChloe" parent="." instance=ExtResource("18_chloe")]
+position = Vector2(140, 300)
 
 [node name="InventoryUI" parent="." unique_id=1802613694 instance=ExtResource("13_inv")]

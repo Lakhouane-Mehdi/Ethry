@@ -1,0 +1,224 @@
+[gd_scene format=3 uid="uid://bvu5b83ud12vj"]
+
+[ext_resource type="Script" uid="uid://ccgyyudhe7g6v" path="res://scripts/CraftingUI.cs" id="1_craftui"]
+[ext_resource type="Texture2D" uid="uid://0o8uw755njmj" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png" id="2_frames"]
+[ext_resource type="Texture2D" uid="uid://c48xou5licw3e" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_ribbons.png" id="3_ribbons"]
+
+[sub_resource type="AtlasTexture" id="AtlasTex_PanelFrame"]
+atlas = ExtResource("2_frames")
+region = Rect2(4, 49, 40, 46)
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_Panel"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+texture = SubResource("AtlasTex_PanelFrame")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="AtlasTexture" id="AtlasTex_Ribbon"]
+atlas = ExtResource("3_ribbons")
+region = Rect2(90, 0, 92, 23)
+
+[sub_resource type="AtlasTexture" id="AtlasTex_SmallFrame"]
+atlas = ExtResource("2_frames")
+region = Rect2(52, 7, 40, 36)
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_LeftPanel"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+texture = SubResource("AtlasTex_SmallFrame")
+texture_margin_left = 6.0
+texture_margin_top = 5.0
+texture_margin_right = 6.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="AtlasTexture" id="AtlasTex_RightFrame"]
+atlas = ExtResource("2_frames")
+region = Rect2(100, 49, 40, 46)
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_RightPanel"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+texture = SubResource("AtlasTex_RightFrame")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_CraftBtn"]
+content_margin_left = 4.0
+content_margin_top = 6.0
+content_margin_right = 4.0
+content_margin_bottom = 6.0
+bg_color = Color(0.25, 0.48, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.42, 0.72, 0.28, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_CraftBtnDisabled"]
+content_margin_left = 4.0
+content_margin_top = 6.0
+content_margin_right = 4.0
+content_margin_bottom = 6.0
+bg_color = Color(0.28, 0.22, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.3, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="CraftingUI" type="CanvasLayer" unique_id=490425977]
+process_mode = 3
+layer = 50
+script = ExtResource("1_craftui")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=2087638093]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -240.0
+offset_right = 270.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBox_Panel")
+
+[node name="MainVBox" type="VBoxContainer" parent="Panel" unique_id=2083259460]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleRibbon" type="TextureRect" parent="Panel/MainVBox" unique_id=1281361222]
+texture_filter = 2
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+texture = SubResource("AtlasTex_Ribbon")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="Panel/MainVBox" unique_id=1751530717]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32, 0.16, 0.06, 1)
+theme_override_font_sizes/font_size = 15
+text = "CRAFTING TABLE"
+horizontal_alignment = 1
+
+[node name="Sep0" type="HSeparator" parent="Panel/MainVBox" unique_id=652308677]
+modulate = Color(0.55, 0.35, 0.15, 0.5)
+layout_mode = 2
+
+[node name="ContentHBox" type="HBoxContainer" parent="Panel/MainVBox" unique_id=845914063]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="LeftPanel" type="PanelContainer" parent="Panel/MainVBox/ContentHBox" unique_id=1187388504]
+custom_minimum_size = Vector2(195, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_LeftPanel")
+
+[node name="RecipeScroll" type="ScrollContainer" parent="Panel/MainVBox/ContentHBox/LeftPanel" unique_id=1287077577]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RecipeList" type="VBoxContainer" parent="Panel/MainVBox/ContentHBox/LeftPanel/RecipeScroll" unique_id=296059853]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="RightPanel" type="PanelContainer" parent="Panel/MainVBox/ContentHBox" unique_id=1517907397]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_RightPanel")
+
+[node name="RightVBox" type="VBoxContainer" parent="Panel/MainVBox/ContentHBox/RightPanel" unique_id=546911001]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ResultHBox" type="HBoxContainer" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=1820637024]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResultIcon" type="TextureRect" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox" unique_id=715774529]
+texture_filter = 2
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ResultVBox" type="VBoxContainer" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox" unique_id=1684658510]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="ResultName" type="Label" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox/ResultVBox" unique_id=529103720]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32, 0.16, 0.06, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="ResultDesc" type="Label" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox/ResultVBox" unique_id=1884933159]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.85)
+theme_override_font_sizes/font_size = 10
+autowrap_mode = 3
+
+[node name="Sep1" type="HSeparator" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=1401638509]
+modulate = Color(0.55, 0.35, 0.15, 0.5)
+layout_mode = 2
+
+[node name="IngredientsLabel" type="Label" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=933614780]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.8)
+theme_override_font_sizes/font_size = 10
+text = "INGREDIENTS"
+
+[node name="IngredientList" type="VBoxContainer" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=891764300]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="CraftButton" type="Button" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=1972544054]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 0.75, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBox_CraftBtn")
+theme_override_styles/pressed = SubResource("StyleBox_CraftBtn")
+theme_override_styles/hover = SubResource("StyleBox_CraftBtn")
+theme_override_styles/disabled = SubResource("StyleBox_CraftBtnDisabled")
+text = "CRAFT"
+
+[node name="Sep2" type="HSeparator" parent="Panel/MainVBox" unique_id=1886843000]
+modulate = Color(0.55, 0.35, 0.15, 0.5)
+layout_mode = 2
+
+[node name="CloseHint" type="Label" parent="Panel/MainVBox" unique_id=369205057]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.65)
+theme_override_font_sizes/font_size = 9
+text = "[E]  Close"
+horizontal_alignment = 1

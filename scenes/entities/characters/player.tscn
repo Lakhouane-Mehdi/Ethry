@@ -348,7 +348,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_vqv6a")
 }],
-"loop": true,
+"loop": false,
 "name": &"axe_down",
 "speed": 5.0
 }, {
@@ -359,7 +359,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_gtv6q")
 }],
-"loop": true,
+"loop": false,
 "name": &"axe_right",
 "speed": 5.0
 }, {
@@ -370,7 +370,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_co01m")
 }],
-"loop": true,
+"loop": false,
 "name": &"axe_up",
 "speed": 5.0
 }, {
@@ -470,7 +470,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_5tcp7")
 }],
-"loop": true,
+"loop": false,
 "name": &"pickaxe_down",
 "speed": 5.0
 }, {
@@ -481,7 +481,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_p0kre")
 }],
-"loop": true,
+"loop": false,
 "name": &"pickaxe_right",
 "speed": 5.0
 }, {
@@ -492,7 +492,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8mhwr")
 }],
-"loop": true,
+"loop": false,
 "name": &"pickaxe_up",
 "speed": 5.0
 }, {
@@ -572,7 +572,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_tdx5e")
 }],
-"loop": true,
+"loop": false,
 "name": &"shovel_down",
 "speed": 5.0
 }, {
@@ -583,7 +583,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_j7kfq")
 }],
-"loop": true,
+"loop": false,
 "name": &"shovel_right",
 "speed": 5.0
 }, {
@@ -594,7 +594,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_rnfp6")
 }],
-"loop": true,
+"loop": false,
 "name": &"shovel_up",
 "speed": 5.0
 }]

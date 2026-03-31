@@ -8,6 +8,7 @@ public partial class Player : CharacterBody2D
 	[Export] public float Friction = 1000f;
 	[Export] public float AttackCooldown = 0.4f;
 	public int AttackDamage => Equipment.Instance?.GetAttackDamage() ?? 1;
+	[Export] public int MaxHealth = 6;
 	[Export] public int Health = 6;
 	[Export] public float KnockbackForce = 120f;
 
@@ -196,10 +197,13 @@ public partial class Player : CharacterBody2D
 		if (_isDead || _isKnockedBack)
 			return;
 
-		Health -= damage;
+		// Reduce incoming damage by player's current total defence
+		int defence = Equipment.Instance?.GetTotalDefence() ?? 0;
+		int effective = Mathf.Max(1, damage - defence);
+		Health -= effective;
+
 		_sprite.Modulate = new Color(1, 0.3f, 0.3f);
 		GetTree().CreateTimer(0.15).Timeout += () => _sprite.Modulate = Colors.White;
-		GD.Print($"Player hit! Health: {Health}");
 
 		_isKnockedBack = true;
 		_knockbackTimer = 0.15f;
@@ -207,6 +211,24 @@ public partial class Player : CharacterBody2D
 
 		if (Health <= 0)
 			Die();
+	}
+
+	/// <summary>Restores HP, capped at MaxHealth.</summary>
+	public void Heal(int amount)
+	{
+		Health = Mathf.Min(Health + amount, MaxHealth);
+	}
+
+	/// <summary>Consumes a food item and heals the player.
+	/// Returns false if already at max HP or item not in inventory.</summary>
+	public bool UseConsumable(ItemType type)
+	{
+		int heal = ItemRegistry.GetHealAmount(type);
+		if (heal <= 0)             return false;
+		if (Health >= MaxHealth)   return false;
+		if (!Inventory.Instance.RemoveItem(type)) return false;
+		Heal(heal);
+		return true;
 	}
 
 	private void Die()

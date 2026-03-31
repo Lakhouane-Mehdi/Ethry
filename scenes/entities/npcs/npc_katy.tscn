@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cvadtebdo77ph"]
 
 [ext_resource type="Texture2D" uid="uid://c8lkdgt6cbrb4" path="res://assets/cute_fantasy/cute_fantasy/NPCs (Premade)/Bartender_Katy.png" id="1_rnb6i"]
+[ext_resource type="Script" path="res://scripts/NPC.cs" id="2_npc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4fjbr"]
 atlas = ExtResource("1_rnb6i")
@@ -324,6 +325,10 @@ animations = [{
 
 [node name="npc_katy" type="CharacterBody2D" unique_id=1831733364]
 scale = Vector2(4, 4)
+script = ExtResource("2_npc")
+NpcName = "Katy"
+Role = 0
+DialogueLines = PackedStringArray("Welcome to Ethry!", "It's a beautiful day, isn't it?", "Be careful of the slimes outside.", "I heard there are skeletons deeper in the forest...")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=75651653]
 sprite_frames = SubResource("SpriteFrames_jnvfw")

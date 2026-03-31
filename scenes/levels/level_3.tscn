@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://da2c70xnawnwf"]
 
-[ext_resource type="PackedScene" uid="uid://bamg65e5mgfxm" path="res://scenes/levels/base_level.tscn" id="1_o8c3j"]
+[ext_resource type="PackedScene" uid="uid://7eqwbehk0vui" path="res://scenes/levels/base_level.tscn" id="1_o8c3j"]
 [ext_resource type="PackedScene" uid="uid://c830phk3c0aqr" path="res://scenes/interactables/herb.tscn" id="2_44gv1"]
 
 [node name="levelroot" unique_id=667194796 instance=ExtResource("1_o8c3j")]
@@ -23,19 +23,25 @@ position = Vector2(745, 815)
 [node name="Tree3" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="2" unique_id=1986111953]
 position = Vector2(1354, 154)
 
-[node name="Herb" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="4" unique_id=1346228950]
-position = Vector2(391, 690)
+[node name="Tree5" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="4" unique_id=261729330]
+position = Vector2(3026, 50)
+
+[node name="Tree7" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="6" unique_id=60668299]
+position = Vector2(3023, 561)
 
 [node name="Herb6" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="9" unique_id=328797524 instance=ExtResource("2_44gv1")]
 position = Vector2(283, 525)
 
-[node name="Rock" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="10" unique_id=1441697664]
+[node name="Herb" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="10" unique_id=1346228950]
+position = Vector2(391, 690)
+
+[node name="Rock" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="15" unique_id=1441697664]
 position = Vector2(868, 285)
 
-[node name="Rock2" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="11" unique_id=438920017]
+[node name="Rock2" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="16" unique_id=438920017]
 position = Vector2(813.00006, 282)
 
-[node name="Rock3" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="12" unique_id=1091112459]
+[node name="Rock3" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="17" unique_id=1091112459]
 position = Vector2(1869, 281)
 
 [node name="Player" parent="." index="4" unique_id=2095088575]
