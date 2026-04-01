@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d2vmeeagc5yua"]
 
-[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/NPCs (Premade)/Chef_Chloe.png" id="1_sprite"]
-[ext_resource type="Script" path="res://scripts/NPC.cs" id="2_npc"]
+[ext_resource type="Texture2D" uid="uid://day1hyvclriug" path="res://assets/cute_fantasy/cute_fantasy/NPCs (Premade)/Chef_Chloe.png" id="1_sprite"]
+[ext_resource type="Script" uid="uid://cbl2jdfqrgj5f" path="res://scripts/NPC.cs" id="2_npc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
 atlas = ExtResource("1_sprite")
@@ -56,7 +56,7 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(12, 8)
 
-[node name="npc_chloe" type="CharacterBody2D"]
+[node name="npc_chloe" type="CharacterBody2D" unique_id=483412905]
 scale = Vector2(4, 4)
 script = ExtResource("2_npc")
 NpcName = "Chef Chloe"
@@ -64,11 +64,12 @@ Role = 1
 DialogueLines = PackedStringArray("Hello dear! Hungry?", "Here, have something to eat!", "Cooking is my passion.", "Come back anytime!")
 ShopItems = PackedInt32Array(26, 28, 30)
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1522597293]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_npc")
 animation = &"idle_down"
 autoplay = "idle_down"
+frame_progress = 0.52764577
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1326445058]
 shape = SubResource("RectangleShape2D_body")
