@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/Chest.cs" id="1_chest"]
+[ext_resource type="Script" path="res://scripts/interactables/Chest.cs" id="1_chest"]
 [ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/house/objects/golden_chest_anim.png" id="2_sprite"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_c0"]
@@ -88,3 +88,4 @@ shape = SubResource("CircleShape2D_area")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 shape = SubResource("RectangleShape2D_body")
+

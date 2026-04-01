@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://biwj1dv1p6kdm"]
 
-[ext_resource type="Script" uid="uid://byox4ky14uoyk" path="res://scripts/CraftingTable.cs" id="1_craft"]
+[ext_resource type="Script" uid="uid://byox4ky14uoyk" path="res://scripts/interactables/CraftingTable.cs" id="1_craft"]
 [ext_resource type="Texture2D" uid="uid://q46mexfjvfta" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/House_Decor/Tables.png" id="2_cr43b"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_u2rtu"]
@@ -28,3 +28,4 @@ shape = SubResource("CircleShape2D_cr43b")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=983134541]
 shape = SubResource("CircleShape2D_u2rtu")
+

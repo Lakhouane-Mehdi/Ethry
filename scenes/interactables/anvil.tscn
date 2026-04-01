@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/Anvil.cs" id="1_anvil"]
+[ext_resource type="Script" path="res://scripts/interactables/Anvil.cs" id="1_anvil"]
 [ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/House_Decor/anvil_anim.png" id="2_sprite"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_frame0"]
@@ -91,3 +91,4 @@ shape = SubResource("CircleShape2D_area")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 position = Vector2(0, 2)
 shape = SubResource("RectangleShape2D_body")
+

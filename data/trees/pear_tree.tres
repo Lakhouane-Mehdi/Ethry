@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="TreeData" format=3 uid="uid://djuk68jnyc7kt"]
+
+[ext_resource type="Script" uid="uid://bwosqp84b6fcx" path="res://scripts/data/TreeData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://bv63rfx6cmoef" path="res://assets/cute_fantasy/cute_fantasy/crops/pear_tree.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://m3j0371okqfr" path="res://assets/cute_fantasy/cute_fantasy/trees/big_oak_tree.png" id="3"]
+
+[sub_resource type="AtlasTexture" id="stump"]
+atlas = ExtResource("3")
+region = Rect2(0, 0, 32, 32)
+
+[resource]
+script = ExtResource("1")
+Id = "PearTree"
+DisplayName = "Pear Tree"
+Health = 4
+PrimaryDropMax = 3
+IsFruitTree = true
+FruitDropId = "Pear"
+FruitSeasons = PackedInt32Array(1, 2)
+StumpTexture = SubResource("stump")
+FruitTexture = ExtResource("2")

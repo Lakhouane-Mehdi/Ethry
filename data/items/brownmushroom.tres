@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://be0ttx6ckrxvd"]
+
+[ext_resource type="Texture2D" uid="uid://dd8g421su7oai" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/food_icons_no_outline.png" id="1_m10v6"]
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="2_2ttqx"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_npvva"]
+atlas = ExtResource("1_m10v6")
+region = Rect2(65.79216, 0.8848072, 13.089272, 14.07958)
+
+[resource]
+script = ExtResource("2_2ttqx")
+Id = "Mushroom"
+DisplayName = "BrownMushroom"
+Category = 4
+Description = "A brown forest mushroom. Restores 1 HP."
+HealAmount = 1
+MaxStack = 20
+Icon = SubResource("AtlasTexture_npvva")

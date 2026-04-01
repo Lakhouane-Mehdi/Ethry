@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/interactables/FarmPlot.cs" id="1_farm"]
+[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland.png" id="2_soil"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_plot"]
+size = Vector2(16, 16)
+
+[node name="FarmPlot" type="Node2D"]
+scale = Vector2(4, 4)
+script = ExtResource("1_farm")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("2_soil")
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 16)
+

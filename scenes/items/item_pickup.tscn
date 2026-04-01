@@ -1,33 +1,16 @@
 [gd_scene format=3 uid="uid://vp28iya1b4qx"]
 
-[ext_resource type="Script" uid="uid://batlonbjiys4f" path="res://scripts/ItemPickup.cs" id="1_pickup"]
-[ext_resource type="Texture2D" uid="uid://xlxbxpebdh3l" path="res://assets/cute_fantasy/cute_fantasy/outdoor decoration/outdoor_decor.png" id="2_nc1ct"]
-[ext_resource type="Texture2D" uid="uid://c1shpq7auruva" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/resources_icons_no_outline.png" id="3_dcl3s"]
-[ext_resource type="Texture2D" uid="uid://cpy6lc67kwfnw" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/outdoor_decor_free.png" id="4_jgpgv"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_24vly"]
-atlas = ExtResource("2_nc1ct")
-region = Rect2(66.99542, 115.23037, 26.304352, 10.890923)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_mfer6"]
-atlas = ExtResource("3_dcl3s")
-region = Rect2(1.0479355, 80.07228, 14.250137, 15.232903)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_f38vu"]
-atlas = ExtResource("4_jgpgv")
-region = Rect2(34.66076, 3.0305138, 10.55867, 9.543414)
+[ext_resource type="Script" uid="uid://batlonbjiys4f" path="res://scripts/items/ItemPickup.cs" id="1_pickup"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
 radius = 8.0
 
 [node name="ItemPickup" type="Area2D" unique_id=743289191]
 script = ExtResource("1_pickup")
-WoodTexture = SubResource("AtlasTexture_24vly")
-StoneTexture = SubResource("AtlasTexture_mfer6")
-HerbTexture = SubResource("AtlasTexture_f38vu")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=538672893]
 shape = SubResource("CircleShape2D_pickup")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1832170230]
 scale = Vector2(2, 2)
+

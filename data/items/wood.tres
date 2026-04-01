@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cagyqja5x5f37"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://xlxbxpebdh3l" path="res://assets/cute_fantasy/cute_fantasy/outdoor decoration/outdoor_decor.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2")
+region = Rect2(67, 115, 26, 11)
+
+[resource]
+script = ExtResource("1")
+Id = "Wood"
+DisplayName = "Wood"
+Description = "Basic building material gathered from trees."
+Icon = SubResource("AtlasTexture_icon")
+

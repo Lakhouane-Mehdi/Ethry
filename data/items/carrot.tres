@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://djg1w2ya8nlsm"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://dd8g421su7oai" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/food_icons_no_outline.png" id="1_cmqf5"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ba1um"]
+atlas = ExtResource("1_cmqf5")
+region = Rect2(33.01604, 64.59325, 14.170853, 14.281326)
+
+[resource]
+script = ExtResource("1")
+Id = "Carrot"
+DisplayName = "Carrot"
+Category = 4
+Description = "A fresh carrot. Restores 1 HP."
+HealAmount = 1
+MaxStack = 20
+Icon = SubResource("AtlasTexture_ba1um")

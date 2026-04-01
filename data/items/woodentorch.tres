@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cm34c2xwulo8"]
+
+[ext_resource type="Texture2D" uid="uid://b7m2fcpw3841a" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/tool_icons_no_outline.png" id="1_csmui"]
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="2_eqqq7"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qjdk7"]
+atlas = ExtResource("1_csmui")
+region = Rect2(144.88396, 0.90278864, 13.275223, 14.040611)
+
+[resource]
+script = ExtResource("2_eqqq7")
+Id = "WoodenTorch"
+DisplayName = "WoodenTorch"
+Category = 1
+Description = "A wooden torch."
+WeaponDamage = 4
+MaxStack = 1
+CanEquip = true
+Icon = SubResource("AtlasTexture_qjdk7")
+

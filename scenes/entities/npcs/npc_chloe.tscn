@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d2vmeeagc5yua"]
 
 [ext_resource type="Texture2D" uid="uid://day1hyvclriug" path="res://assets/cute_fantasy/cute_fantasy/NPCs (Premade)/Chef_Chloe.png" id="1_sprite"]
-[ext_resource type="Script" uid="uid://cbl2jdfqrgj5f" path="res://scripts/NPC.cs" id="2_npc"]
+[ext_resource type="Script" uid="uid://cbl2jdfqrgj5f" path="res://scripts/entities/npcs/NPC.cs" id="2_npc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
 atlas = ExtResource("1_sprite")
@@ -73,3 +73,4 @@ frame_progress = 0.52764577
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1326445058]
 shape = SubResource("RectangleShape2D_body")
+

@@ -17,10 +17,17 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Inventory="*res://scripts/Inventory.cs"
-SceneTransition="*res://scripts/SceneTransition.cs"
-Equipment="*res://scripts/Equipment.cs"
-NotificationManager="*res://scripts/NotificationManager.cs"
+ItemDatabase="*res://scripts/data/ItemDatabase.cs"
+Inventory="*res://scripts/systems/Inventory.cs"
+SceneTransition="*res://scripts/systems/SceneTransition.cs"
+Equipment="*res://scripts/systems/Equipment.cs"
+NotificationManager="*res://scripts/systems/NotificationManager.cs"
+PlayerData="*res://scripts/systems/PlayerData.cs"
+DaySystem="*res://scripts/systems/DaySystem.cs"
+GameHUD="*res://scripts/ui/GameHUD.cs"
+Hotbar="*res://scripts/ui/Hotbar.cs"
+SaveSystem="*res://scripts/systems/SaveSystem.cs"
+PauseMenu="*res://scripts/ui/PauseMenu.cs"
 
 [display]
 

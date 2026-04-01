@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://b4c241w1yn8u3"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://b7m2fcpw3841a" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/tool_icons_no_outline.png" id="1_tudvi"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_61sux"]
+atlas = ExtResource("1_tudvi")
+region = Rect2(112.72351, 1.9973831, 14.459885, 13.21859)
+
+[resource]
+script = ExtResource("1")
+Id = "FishingRod"
+DisplayName = "Fishing Rod"
+Category = 1
+Description = "Cast your line and catch fish."
+WeaponDamage = 1
+MaxStack = 1
+CanEquip = true
+Icon = SubResource("AtlasTexture_61sux")
+

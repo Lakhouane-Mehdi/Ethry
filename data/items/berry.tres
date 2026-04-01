@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://dkqeeiculblf5"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://cepdvcb5si3m2" path="res://assets/cute_fantasy/cute_fantasy/crops/fruit_trees_fruit_objects.png" id="1_ind5v"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5c773"]
+atlas = ExtResource("1_ind5v")
+region = Rect2(66.77575, 2.7978678, 10.79863, 10.983219)
+
+[resource]
+script = ExtResource("1")
+Id = "Berry"
+DisplayName = "Berry"
+Category = 4
+Description = "Wild berries. Restores 1 HP."
+HealAmount = 1
+MaxStack = 20
+Icon = SubResource("AtlasTexture_5c773")
+

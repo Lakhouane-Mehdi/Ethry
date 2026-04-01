@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://cmg6ugp4rcva8"]
+
+[ext_resource type="Script" uid="uid://b8ehvw6572s6j" path="res://scripts/interactables/ShippingBox.cs" id="1_ship"]
+[ext_resource type="Texture2D" uid="uid://dw6rivl6tmc73" path="res://assets/cute_fantasy/cute_fantasy/outdoor decoration/camp_decor.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_box"]
+size = Vector2(14, 12)
+
+[node name="ShippingBox" type="Node2D" unique_id=1623259067]
+scale = Vector2(4, 4)
+script = ExtResource("1_ship")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=767592784]
+texture_filter = 1
+texture = ExtResource("2_tex")
+region_enabled = true
+region_rect = Rect2(96, 48, 16, 16)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1152862531]
+position = Vector2(0, 2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=679194768]
+shape = SubResource("RectangleShape2D_box")
+

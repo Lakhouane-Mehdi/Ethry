@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dbbi4qwe2t2ee"]
 
 [ext_resource type="Texture2D" uid="uid://cgbm3p7nu0sgj" path="res://assets/old_sprites/player_merged/player_old/player.png" id="1_cyojo"]
-[ext_resource type="Script" uid="uid://bef2p24pgwup0" path="res://scripts/Player.cs" id="2_script"]
+[ext_resource type="Script" uid="uid://bef2p24pgwup0" path="res://scripts/entities/characters/Player.cs" id="2_script"]
 [ext_resource type="Texture2D" uid="uid://c03ng1501y7kl" path="res://assets/cute_fantasy_free/cute_fantasy_free/player/player_actions.png" id="3_4rl2u"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1kbk7"]
@@ -614,7 +614,7 @@ script = ExtResource("2_script")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=502875924]
 sprite_frames = SubResource("SpriteFrames_t4otl")
-animation = &"shovel_up"
+animation = &"idle_down"
 autoplay = "idle_down"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=303336916]

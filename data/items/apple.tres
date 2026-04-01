@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://c5pcxaibq561f"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://dd8g421su7oai" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/food_icons_no_outline.png" id="1_j163c"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hwi2a"]
+atlas = ExtResource("1_j163c")
+region = Rect2(96.91518, 48.70753, 14.261589, 14.364834)
+
+[resource]
+script = ExtResource("1")
+Id = "Apple"
+DisplayName = "Apple"
+Category = 4
+Description = "A fresh apple. Restores 2 HP."
+HealAmount = 2
+MaxStack = 20
+Icon = SubResource("AtlasTexture_hwi2a")
+

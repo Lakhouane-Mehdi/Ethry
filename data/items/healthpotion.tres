@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://bhxj5yxronnt0"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://c1x020w070fit" path="res://assets/cute_fantasy/cute_fantasy/icons/outline/other_icons_outline.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2")
+region = Rect2(0, 0, 16, 16)
+
+[resource]
+script = ExtResource("1")
+Id = "HealthPotion"
+DisplayName = "Health Potion"
+Category = 5
+Description = "Concentrated healing brew. Restores 5 HP."
+HealAmount = 5
+MaxStack = 10
+Icon = SubResource("AtlasTexture_icon")
+

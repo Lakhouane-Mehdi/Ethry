@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b1wj4ibg7now5"]
 
-[ext_resource type="Script" uid="uid://dt71fpxw4oa6g" path="res://scripts/ResourceNode.cs" id="1_rnode"]
+[ext_resource type="Script" uid="uid://dt71fpxw4oa6g" path="res://scripts/interactables/ResourceNode.cs" id="1_rnode"]
 [ext_resource type="Texture2D" uid="uid://bnhn20xtkvw82" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/oak_tree.png" id="2_oaktree"]
 [ext_resource type="PackedScene" path="res://scenes/items/item_pickup.tscn" id="3_pickup"]
 
@@ -38,3 +38,4 @@ y_sort_enabled = true
 position = Vector2(0, 31)
 scale = Vector2(2, 2)
 shape = SubResource("RectangleShape2D_hurt")
+

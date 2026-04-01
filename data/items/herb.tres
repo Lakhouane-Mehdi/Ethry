@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://buu1kh1dik34x"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://cpy6lc67kwfnw" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/outdoor_decor_free.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2")
+region = Rect2(35, 3, 11, 10)
+
+[resource]
+script = ExtResource("1")
+Id = "Herb"
+DisplayName = "Herb"
+Description = "A medicinal plant with healing properties."
+Icon = SubResource("AtlasTexture_icon")

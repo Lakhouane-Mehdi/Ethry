@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://bttjo6hct7vh0"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://dd8g421su7oai" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/food_icons_no_outline.png" id="1_ws6qf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wcj2b"]
+atlas = ExtResource("1_ws6qf")
+region = Rect2(97.04363, 0.76313496, 13.967819, 14.0614195)
+
+[resource]
+script = ExtResource("1")
+Id = "Cheese"
+DisplayName = "Cheese"
+Category = 4
+Description = "Cheese. Restores 2 HP."
+HealAmount = 2
+MaxStack = 20
+Icon = SubResource("AtlasTexture_wcj2b")
+

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://comieshnleslr"]
+
+[ext_resource type="Texture2D" uid="uid://b7m2fcpw3841a" path="res://assets/cute_fantasy/cute_fantasy/icons/no outline/tool_icons_no_outline.png" id="1_wqwc0"]
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="2_2qwqu"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2qwqu"]
+atlas = ExtResource("1_wqwc0")
+region = Rect2(97.9977, 2.8363998, 12.139008, 11.123057)
+
+[resource]
+script = ExtResource("2_2qwqu")
+Id = "WateringCan"
+DisplayName = "WateringCan"
+Category = 1
+Description = "A watering can, that u can water crops and trees with."
+WeaponDamage = 5
+MaxStack = 1
+CanEquip = true
+Icon = SubResource("AtlasTexture_2qwqu")
+

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://d17r5jfopcsio"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://dwkwpf8ke32uj" path="res://assets/cute_fantasy/cute_fantasy/icons/outline/resources_icons_outline.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2")
+region = Rect2(64, 64, 16, 16)
+
+[resource]
+script = ExtResource("1")
+Id = "LeatherHelmet"
+DisplayName = "Leather Helmet"
+Category = 3
+Description = "A tough leather cap. Light protection."
+ArmorRating = 1
+MaxStack = 1
+CanEquip = true
+EquipSlotType = 1
+Icon = SubResource("AtlasTexture_icon")
+

@@ -12,9 +12,9 @@
 [ext_resource type="PackedScene" uid="uid://dbbi4qwe2t2ee" path="res://scenes/entities/characters/player.tscn" id="10_7iw3j"]
 [ext_resource type="Texture2D" uid="uid://f0uo8vt1pq4t" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/House_Decor/Windows_Double.png" id="10_lhubr"]
 [ext_resource type="PackedScene" uid="uid://cpo5j0bgjtbeq" path="res://scenes/heart.tscn" id="11_heart"]
-[ext_resource type="Script" uid="uid://b0q1bltvufrw7" path="res://scripts/HUD.cs" id="12_hud"]
+[ext_resource type="Script" uid="uid://b0q1bltvufrw7" path="res://scripts/ui/HUD.cs" id="12_hud"]
 [ext_resource type="PackedScene" uid="uid://bwlapqw1ld6ku" path="res://scenes/ui/inventory_ui.tscn" id="13_inv"]
-[ext_resource type="Script" uid="uid://d0lgeietpqx6e" path="res://scripts/Exit.cs" id="14_exit"]
+[ext_resource type="Script" uid="uid://d0lgeietpqx6e" path="res://scripts/interactables/Exit.cs" id="14_exit"]
 [ext_resource type="PackedScene" uid="uid://biwj1dv1p6kdm" path="res://scenes/interactables/crafting_table.tscn" id="15_craft"]
 [ext_resource type="PackedScene" path="res://scenes/interactables/furnace.tscn" id="16_furnace"]
 [ext_resource type="PackedScene" path="res://scenes/interactables/anvil.tscn" id="17_anvil"]
@@ -1529,3 +1529,4 @@ position = Vector2(476, 158)
 position = Vector2(140, 300)
 
 [node name="InventoryUI" parent="." unique_id=1802613694 instance=ExtResource("13_inv")]
+

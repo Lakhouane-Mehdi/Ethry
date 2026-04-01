@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://lxh55vkrwohr"]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" uid="uid://dlqwcsdmwucih" path="res://assets/cute_fantasy/cute_fantasy/icons/outline/tool_icons_outline.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2")
+region = Rect2(32, 0, 16, 16)
+
+[resource]
+script = ExtResource("1")
+Id = "Pickaxe"
+DisplayName = "Pickaxe"
+Category = 1
+Description = "Used to mine rocks more efficiently."
+WeaponDamage = 2
+MaxStack = 1
+CanEquip = true
+Icon = SubResource("AtlasTexture_icon")
+

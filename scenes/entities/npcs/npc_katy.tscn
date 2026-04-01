@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cvadtebdo77ph"]
 
 [ext_resource type="Texture2D" uid="uid://c8lkdgt6cbrb4" path="res://assets/cute_fantasy/cute_fantasy/NPCs (Premade)/Bartender_Katy.png" id="1_rnb6i"]
-[ext_resource type="Script" path="res://scripts/NPC.cs" id="2_npc"]
+[ext_resource type="Script" uid="uid://cbl2jdfqrgj5f" path="res://scripts/entities/npcs/NPC.cs" id="2_npc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4fjbr"]
 atlas = ExtResource("1_rnb6i")
@@ -322,13 +322,13 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d8yjw"]
+size = Vector2(12, 16.25)
 
 [node name="npc_katy" type="CharacterBody2D" unique_id=1831733364]
 scale = Vector2(4, 4)
 script = ExtResource("2_npc")
 NpcName = "Katy"
-Role = 0
-DialogueLines = PackedStringArray("Welcome to Ethry!", "It's a beautiful day, isn't it?", "Be careful of the slimes outside.", "I heard there are skeletons deeper in the forest...")
+DialogueLines = PackedStringArray("Welcome to Ethry!", "It\'s a beautiful day, isn\'t it?", "Be careful of the slimes outside.", "I heard there are skeletons deeper in the forest...")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=75651653]
 sprite_frames = SubResource("SpriteFrames_jnvfw")
@@ -336,4 +336,5 @@ animation = &"idle_down"
 autoplay = "idle_down"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1841714134]
+position = Vector2(-0.25, -1.625)
 shape = SubResource("RectangleShape2D_d8yjw")

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" uid="uid://b3uly48ovaj77" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/crops/fruit_trees_fruit_objects.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="icon"]
+atlas = ExtResource("2")
+region = Rect2(0, 0, 9, 9)
+
+[resource]
+script = ExtResource("1")
+Id = "Cherry"
+DisplayName = "Cherry"
+Category = 4
+Description = "Sweet cherry. Restores 2 HP."
+WeaponDamage = 0
+ArmorRating = 0
+HealAmount = 2
+MaxStack = 20
+CanEquip = false
+Icon = SubResource("icon")

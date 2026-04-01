@@ -7,22 +7,23 @@
 [ext_resource type="PackedScene" uid="uid://bnghordkpbfc0" path="res://scenes/entities/enemies/slime.tscn" id="4_o1chu"]
 [ext_resource type="Texture2D" uid="uid://cpy6lc67kwfnw" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/outdoor_decor_free.png" id="5_43bxi"]
 [ext_resource type="PackedScene" uid="uid://cpo5j0bgjtbeq" path="res://scenes/heart.tscn" id="5_heart"]
-[ext_resource type="Script" uid="uid://b0q1bltvufrw7" path="res://scripts/HUD.cs" id="6_hud"]
+[ext_resource type="Script" uid="uid://b0q1bltvufrw7" path="res://scripts/ui/HUD.cs" id="6_hud"]
 [ext_resource type="Texture2D" uid="uid://bkrnwk756ovp1" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/bridge_wood.png" id="6_j7gcg"]
 [ext_resource type="Texture2D" uid="uid://bbepd76yxa2ga" path="res://assets/cute_fantasy/cute_fantasy/trees/big_fruit_tree.png" id="7_1vfnp"]
 [ext_resource type="Texture2D" uid="uid://d26tmtsul3yd4" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/special_buildings/blacksmith_house/blacksmith_house.png" id="7_qhwlw"]
 [ext_resource type="Texture2D" uid="uid://bnhn20xtkvw82" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/oak_tree.png" id="8_53c65"]
 [ext_resource type="Texture2D" uid="uid://460cnkdogt8c" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/houses/house_2_6.png" id="8_bd4s6"]
-[ext_resource type="Script" uid="uid://d0lgeietpqx6e" path="res://scripts/Exit.cs" id="9_exit"]
+[ext_resource type="Script" uid="uid://d0lgeietpqx6e" path="res://scripts/interactables/Exit.cs" id="9_exit"]
 [ext_resource type="PackedScene" uid="uid://c830phk3c0aqr" path="res://scenes/interactables/herb.tscn" id="11_j8xgc"]
+[ext_resource type="Resource" uid="uid://cp6obb675k4us" path="res://data/trees/apple_tree.tres" id="11_r6qow"]
 [ext_resource type="PackedScene" uid="uid://d3g6fphsp44wj" path="res://scenes/interactables/rock.tscn" id="12_ovmjf"]
 [ext_resource type="PackedScene" uid="uid://bwlapqw1ld6ku" path="res://scenes/ui/inventory_ui.tscn" id="15_575cj"]
 [ext_resource type="PackedScene" uid="uid://b1wj4ibg7now5" path="res://scenes/interactables/tree.tscn" id="16_i5apv"]
 [ext_resource type="PackedScene" path="res://scenes/interactables/chest_wood.tscn" id="17_chest"]
-[ext_resource type="PackedScene" path="res://scenes/entities/enemies/skeleton.tscn" id="18_skel"]
+[ext_resource type="PackedScene" uid="uid://b18sby3ma28rf" path="res://scenes/entities/enemies/skeleton.tscn" id="18_skel"]
 [ext_resource type="PackedScene" path="res://scenes/entities/enemies/bombshroom.tscn" id="19_bomb"]
-[ext_resource type="PackedScene" path="res://scenes/entities/npcs/npc_katy.tscn" id="20_katy"]
-[ext_resource type="Script" path="res://scripts/WeatherSystem.cs" id="21_weather"]
+[ext_resource type="PackedScene" uid="uid://cvadtebdo77ph" path="res://scenes/entities/npcs/npc_katy.tscn" id="20_katy"]
+[ext_resource type="Script" uid="uid://bxlt1toivouj7" path="res://scripts/systems/WeatherSystem.cs" id="21_weather"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uk53i"]
 texture = ExtResource("1_md458")
@@ -542,6 +543,7 @@ position = Vector2(152, 42)
 
 [node name="Tree6" parent="interactables" unique_id=72524873 instance=ExtResource("16_i5apv")]
 position = Vector2(938, 56)
+Tree = ExtResource("11_r6qow")
 
 [node name="Tree7" parent="interactables" unique_id=60668299 instance=ExtResource("16_i5apv")]
 position = Vector2(596, 56)
@@ -551,6 +553,7 @@ position = Vector2(570, 593)
 
 [node name="Tree9" parent="interactables" unique_id=245756096 instance=ExtResource("16_i5apv")]
 position = Vector2(1310, 824)
+Tree = ExtResource("11_r6qow")
 
 [node name="Herb" parent="interactables" unique_id=1346228950 instance=ExtResource("11_j8xgc")]
 position = Vector2(233, 636)
@@ -576,7 +579,7 @@ position = Vector2(914, 423)
 [node name="Rock3" parent="interactables" unique_id=1091112459 instance=ExtResource("12_ovmjf")]
 position = Vector2(1013, 418)
 
-[node name="ChestWood" parent="interactables" instance=ExtResource("17_chest")]
+[node name="ChestWood" parent="interactables" unique_id=1723818043 instance=ExtResource("17_chest")]
 position = Vector2(850, 500)
 
 [node name="Player" parent="." unique_id=2095088575 instance=ExtResource("3_wwrw0")]
@@ -587,10 +590,10 @@ position = Vector2(100, 728)
 [node name="slime" parent="enemies" unique_id=1658102612 instance=ExtResource("4_o1chu")]
 position = Vector2(1635, 295)
 
-[node name="Skeleton" parent="enemies" instance=ExtResource("18_skel")]
+[node name="Skeleton" parent="enemies" unique_id=659027751 instance=ExtResource("18_skel")]
 position = Vector2(2200, 400)
 
-[node name="Bombshroom" parent="enemies" instance=ExtResource("19_bomb")]
+[node name="Bombshroom" parent="enemies" unique_id=1226175342 instance=ExtResource("19_bomb")]
 position = Vector2(1900, 600)
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=132417812]
@@ -630,13 +633,13 @@ position = Vector2(-103, 227)
 shape = SubResource("RectangleShape2D_house")
 debug_color = Color(0.21802557, 0.87486154, 0.4, 0.41960785)
 
-[node name="Weather" type="CanvasLayer" parent="."]
+[node name="Weather" type="CanvasLayer" parent="." unique_id=1538053353]
 layer = 10
 script = ExtResource("21_weather")
 
-[node name="NPCs" type="Node2D" parent="."]
+[node name="NPCs" type="Node2D" parent="." unique_id=1990606006]
 
-[node name="Katy" parent="NPCs" instance=ExtResource("20_katy")]
+[node name="Katy" parent="NPCs" unique_id=1857535483 instance=ExtResource("20_katy")]
 position = Vector2(350, 800)
 
 [node name="InventoryUI" parent="." unique_id=2118084509 instance=ExtResource("15_575cj")]
