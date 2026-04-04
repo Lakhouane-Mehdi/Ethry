@@ -8,7 +8,7 @@ public partial class Inventory : Node
 	private readonly Dictionary<string, int> _items = new();
 
 	[Signal] public delegate void ChangedEventHandler();
-	[Signal] public delegate void ItemAddedEventHandler(string itemName, int amount);
+	[Signal] public delegate void ItemAddedEventHandler(string itemId, string itemName, int amount);
 
 	public override void _Ready() => Instance = this;
 
@@ -20,7 +20,7 @@ public partial class Inventory : Node
 
 		var data = ItemDatabase.Instance?.Get(id);
 		string name = data != null ? data.DisplayName : id;
-		EmitSignal(SignalName.ItemAdded, name, amount);
+		EmitSignal(SignalName.ItemAdded, id, name, amount);
 	}
 
 	public bool RemoveItem(string id, int amount = 1)

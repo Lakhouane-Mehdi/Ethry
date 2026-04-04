@@ -14,6 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://bnhn20xtkvw82" path="res://assets/cute_fantasy_free/cute_fantasy_free/outdoor decoration/oak_tree.png" id="8_53c65"]
 [ext_resource type="Texture2D" uid="uid://460cnkdogt8c" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/houses/house_2_6.png" id="8_bd4s6"]
 [ext_resource type="Script" uid="uid://d0lgeietpqx6e" path="res://scripts/interactables/Exit.cs" id="9_exit"]
+[ext_resource type="Resource" uid="uid://btc5bxdym56x2" path="res://data/trees/birch.tres" id="11_1hcxj"]
 [ext_resource type="PackedScene" uid="uid://c830phk3c0aqr" path="res://scenes/interactables/herb.tscn" id="11_j8xgc"]
 [ext_resource type="Resource" uid="uid://cp6obb675k4us" path="res://data/trees/apple_tree.tres" id="11_r6qow"]
 [ext_resource type="PackedScene" uid="uid://d3g6fphsp44wj" path="res://scenes/interactables/rock.tscn" id="12_ovmjf"]
@@ -527,7 +528,8 @@ tile_set = SubResource("TileSet_bd4s6")
 y_sort_enabled = true
 
 [node name="Tree" parent="interactables" unique_id=1746360041 instance=ExtResource("16_i5apv")]
-position = Vector2(1880, 1534)
+position = Vector2(130, 561)
+Tree = ExtResource("11_1hcxj")
 
 [node name="Tree2" parent="interactables" unique_id=2036864638 instance=ExtResource("16_i5apv")]
 position = Vector2(1052, 593)

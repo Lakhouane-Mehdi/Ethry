@@ -2,6 +2,7 @@ using Godot;
 
 /// <summary>
 /// Skeleton enemy — tougher than slime, faster, hits harder.
+/// Supports directional animations (up, down, right with FlipH for left).
 /// Drops bones and iron ore on death.
 /// </summary>
 public partial class Skeleton : CharacterBody2D
@@ -27,6 +28,7 @@ public partial class Skeleton : CharacterBody2D
 	private bool             _isKnockedBack;
 	private float            _knockbackTimer;
 	private Node2D           _target;
+	private Vector2          _lastDirection = Vector2.Down;
 
 	public override void _Ready()
 	{
@@ -38,7 +40,7 @@ public partial class Skeleton : CharacterBody2D
 
 		_hurtBox.AreaEntered      += OnHurtBoxAreaEntered;
 		_hitBox.BodyEntered       += OnHitBoxBodyEntered;
-		_hitBoxShape.Disabled      = true;
+		_hitBoxShape.SetDeferred(CollisionShape2D.PropertyName.Disabled, true);
 		_sight.BodyEntered        += OnSightBodyEntered;
 		_sight.BodyExited         += OnSightBodyExited;
 		_sprite.AnimationFinished += OnAnimationFinished;
@@ -70,19 +72,17 @@ public partial class Skeleton : CharacterBody2D
 		if (_target != null)
 		{
 			float dist = GlobalPosition.DistanceTo(_target.GlobalPosition);
+			Vector2 dir = (_target.GlobalPosition - GlobalPosition).Normalized();
+			_lastDirection = dir;
+
 			if (dist <= AttackRange)
 			{
-				_isAttacking = true;
-				Velocity     = Vector2.Zero;
-				_sprite.Stop();
-				_sprite.Play("attack");
+				StartAttack();
 			}
 			else
 			{
-				Vector2 dir = (_target.GlobalPosition - GlobalPosition).Normalized();
-				Velocity    = dir * Speed;
-				_sprite.FlipH = dir.X < 0;
-				_sprite.Play("idle");
+				Velocity = dir * Speed;
+				PlayAnimation("idle");
 				MoveAndSlide();
 			}
 		}
@@ -101,9 +101,11 @@ public partial class Skeleton : CharacterBody2D
 			_wanderTimer = WanderTime;
 		}
 
-		Velocity      = _wanderDirection * Speed * 0.4f;
-		_sprite.FlipH = _wanderDirection.X < 0;
-		_sprite.Play("idle");
+		Velocity = _wanderDirection * Speed * 0.4f;
+		if (Velocity != Vector2.Zero)
+			_lastDirection = _wanderDirection;
+		
+		PlayAnimation("idle");
 		MoveAndSlide();
 	}
 
@@ -111,6 +113,51 @@ public partial class Skeleton : CharacterBody2D
 	{
 		float angle      = (float)GD.RandRange(0, Mathf.Tau);
 		_wanderDirection = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+	}
+
+	private void PlayAnimation(string action)
+	{
+		UpdateSpriteFlip();
+		string dirName = GetDirectionName();
+		
+		// Map 'down' to base 'idle' or 'attack' if specific down anims don't follow naming convention
+		// Based on .tscn: attack_down, attack_right, attack_up, idle, idle_right, idle_up
+		string animName = action;
+		if (dirName != "down")
+		{
+			animName = $"{action}_{dirName}";
+		}
+		
+		if (_sprite.Animation != animName)
+			_sprite.Play(animName);
+	}
+
+	private string GetDirectionName()
+	{
+		if (Mathf.Abs(_lastDirection.X) > Mathf.Abs(_lastDirection.Y))
+			return "right";
+		return _lastDirection.Y < 0 ? "up" : "down";
+	}
+
+	private void UpdateSpriteFlip()
+	{
+		if (_lastDirection.X < 0)
+			_sprite.FlipH = true;
+		else if (_lastDirection.X > 0)
+			_sprite.FlipH = false;
+	}
+
+	private void StartAttack()
+	{
+		_isAttacking = true;
+		Velocity     = Vector2.Zero;
+		_sprite.Stop();
+
+		// Play directional attack
+		UpdateSpriteFlip();
+		string dir = GetDirectionName();
+		string anim = $"attack_{dir}";
+		_sprite.Play(anim);
 	}
 
 	public void TakeDamage(int damage, Vector2 knockbackDir)
@@ -146,7 +193,7 @@ public partial class Skeleton : CharacterBody2D
 	{
 		_isDead  = true;
 		Velocity = Vector2.Zero;
-		_hitBoxShape.SetDeferred("disabled", true);
+		_hitBoxShape.SetDeferred(CollisionShape2D.PropertyName.Disabled, true);
 		_hurtBox.SetDeferred("monitoring",  false);
 		_hurtBox.SetDeferred("monitorable", false);
 		_sprite.Play("die");

@@ -174,7 +174,6 @@ public partial class FarmPlot : Node2D
 	{
 		int amount = (int)GD.RandRange(CurrentCrop.HarvestMin, CurrentCrop.HarvestMax + 1);
 		Inventory.Instance.AddItem(CurrentCrop.HarvestItemId, amount);
-		NotificationManager.Instance?.ShowPickup(CurrentCrop.DisplayName, amount);
 
 		if (CurrentCrop.Regrows)
 		{

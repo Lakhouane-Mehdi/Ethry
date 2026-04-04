@@ -24,6 +24,27 @@ public partial class Player : CharacterBody2D
 	private float _knockbackTimer;
 	private float _attackTimer;
 
+	/// <summary>Briefly shakes the camera for impact/juice.</summary>
+	public void ShakeCamera(float duration = 0.15f, float intensity = 3.0f)
+	{
+		if (!IsInstanceValid(_camera)) return;
+
+		var tween = CreateTween();
+		int shakes = 5;
+		float step = duration / shakes;
+
+		for (int i = 0; i < shakes; i++)
+		{
+			var offset = new Vector2(
+				(float)GD.RandRange(-intensity, intensity),
+				(float)GD.RandRange(-intensity, intensity)
+			);
+			tween.TweenProperty(_camera, "offset", offset, step).SetTrans(Tween.TransitionType.Sine);
+		}
+
+		tween.TweenProperty(_camera, "offset", Vector2.Zero, step);
+	}
+
 	public override void _Ready()
 	{
 		AddToGroup("player");
@@ -168,7 +189,7 @@ public partial class Player : CharacterBody2D
 			_ => _sprite.FlipH ? new Vector2(-7.5f, -0.5f) : new Vector2(7.5f, -0.5f)
 		};
 		_hitbox.Position = offset;
-		_hitboxShape.Disabled = false;
+		_hitboxShape.SetDeferred(CollisionShape2D.PropertyName.Disabled, false);
 	}
 
 	private void DisableHitBox()

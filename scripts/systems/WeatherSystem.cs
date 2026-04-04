@@ -39,7 +39,6 @@ public partial class WeatherSystem : CanvasLayer
 	private GpuParticles2D _rainParticles;
 	private GpuParticles2D _snowParticles;
 	private GpuParticles2D _windParticles;
-	private CanvasModulate _worldTint;
 	private ColorRect      _lightningFlash;
 
 	private struct CloudEntry
@@ -91,9 +90,6 @@ public partial class WeatherSystem : CanvasLayer
 		var rect = GetViewport().GetVisibleRect().Size;
 		_screenW = rect.X;
 		_screenH = rect.Y;
-
-		_worldTint = new CanvasModulate();
-		AddChild(_worldTint);
 
 		_lightningFlash = new ColorRect
 		{
@@ -216,26 +212,15 @@ public partial class WeatherSystem : CanvasLayer
 		                 : (newWeather == WeatherType.Rain) ? 0.4f : 0.0f;
 		tween.TweenProperty(_windParticles, "amount_ratio", windTarget, dur);
 
-		// World tint
-		Color targetTint = newWeather switch
-		{
-			WeatherType.Cloudy => CloudyTint,
-			WeatherType.Rain   => RainTint,
-			WeatherType.Storm  => StormTint,
-			WeatherType.Snow   => SnowTint,
-			_                  => ClearTint,
-		};
-		tween.TweenProperty(_worldTint, "color", targetTint, dur + 0.5f);
-
-		// Cloud opacity
+		// Cloud opacity (moved to a baseline alpha)
 		float cloudAlpha = newWeather switch
 		{
-			WeatherType.Clear  => 0.04f,
-			WeatherType.Cloudy => 0.08f,
-			WeatherType.Rain   => 0.12f,
-			WeatherType.Storm  => 0.18f,
-			WeatherType.Snow   => 0.10f,
-			_                  => 0.04f,
+			WeatherType.Clear  => 0.12f,
+			WeatherType.Cloudy => 0.18f,
+			WeatherType.Rain   => 0.28f,
+			WeatherType.Storm  => 0.35f,
+			WeatherType.Snow   => 0.22f,
+			_                  => 0.12f,
 		};
 		for (int ci = 0; ci < _clouds.Length; ci++)
 		{
@@ -264,23 +249,15 @@ public partial class WeatherSystem : CanvasLayer
 		                : (weather == WeatherType.Rain) ? 0.4f : 0.0f;
 		_windParticles.AmountRatio = windRatio;
 
-		_worldTint.Color = weather switch
-		{
-			WeatherType.Cloudy => CloudyTint,
-			WeatherType.Rain   => RainTint,
-			WeatherType.Storm  => StormTint,
-			WeatherType.Snow   => SnowTint,
-			_                  => ClearTint,
-		};
-
+		// (Tint logic handled externally now)
 		float cloudAlpha = weather switch
 		{
-			WeatherType.Clear  => 0.04f,
-			WeatherType.Cloudy => 0.08f,
-			WeatherType.Rain   => 0.12f,
-			WeatherType.Storm  => 0.18f,
-			WeatherType.Snow   => 0.10f,
-			_                  => 0.04f,
+			WeatherType.Clear  => 0.12f,
+			WeatherType.Cloudy => 0.18f,
+			WeatherType.Rain   => 0.28f,
+			WeatherType.Storm  => 0.35f,
+			WeatherType.Snow   => 0.22f,
+			_                  => 0.12f,
 		};
 		for (int ci = 0; ci < _clouds.Length; ci++)
 		{
@@ -288,6 +265,30 @@ public partial class WeatherSystem : CanvasLayer
 			Color c = _clouds[ci].Sprite.Modulate;
 			c.A = cloudAlpha;
 			_clouds[ci].Sprite.Modulate = c;
+		}
+	}
+
+	public Color GetWeatherTint()
+	{
+		return CurrentWeather switch
+		{
+			WeatherType.Cloudy => CloudyTint,
+			WeatherType.Rain   => RainTint,
+			WeatherType.Storm  => StormTint,
+			WeatherType.Snow   => SnowTint,
+			_                  => ClearTint,
+		};
+	}
+
+	public void SyncWithLighting(Color ambientTint)
+	{
+		if (!_cloudsReady) return;
+		
+		for (int i = 0; i < _clouds.Length; i++)
+		{
+			Color c = ambientTint;
+			c.A = _clouds[i].BaseAlpha;
+			_clouds[i].Sprite.Modulate = c;
 		}
 	}
 
@@ -404,7 +405,7 @@ public partial class WeatherSystem : CanvasLayer
 				Sprite    = c,
 				Speed     = speed,
 				WorldPos  = worldPos,
-				BaseAlpha = 0.04f,
+				BaseAlpha = 0.12f + (float)GD.RandRange(0, 0.1f),
 			};
 		}
 		_cloudsReady = true;

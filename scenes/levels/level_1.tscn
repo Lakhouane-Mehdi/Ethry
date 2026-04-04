@@ -40,14 +40,32 @@ position = Vector2(2889, 816)
 [node name="Herb" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="9" unique_id=1346228950]
 position = Vector2(79.000015, 627)
 
+[node name="Herb2" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="10" unique_id=449094251]
+position = Vector2(745, 872)
+
+[node name="Herb3" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="11" unique_id=191768332]
+position = Vector2(724, 958)
+
+[node name="Herb4" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="12" unique_id=1520252716]
+position = Vector2(717, 810)
+
+[node name="Herb5" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="13" unique_id=1525923705]
+position = Vector2(719, 746)
+
 [node name="Rock2" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="15" unique_id=438920017]
 position = Vector2(1432, 125)
 
 [node name="Rock3" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="16" unique_id=1091112459]
 position = Vector2(2418, 769.00006)
 
+[node name="ChestWood" parent="interactables" parent_id_path=PackedInt32Array(1808058717) index="17" unique_id=1723818043]
+position = Vector2(861, 579)
+
 [node name="Player" parent="." index="4" unique_id=2095088575]
 position = Vector2(48, 750)
+
+[node name="Bombshroom" parent="enemies" parent_id_path=PackedInt32Array(1097563442) index="2" unique_id=1226175342]
+position = Vector2(1280.0001, 271)
 
 [node name="exit" parent="." index="7" unique_id=1459572115]
 position = Vector2(2989, 1559)

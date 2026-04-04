@@ -79,15 +79,14 @@ public partial class ResourceNode : Node2D
 	{
 		if (_sprite == null) return;
 
-		// If TreeData has a texture, use it (but only if the scene sprite is empty)
-		if (_sprite.Texture == null && Tree?.TreeTexture != null)
+		// If TreeData has a texture, use it (this overrides any default editor texture)
+		if (Tree?.TreeTexture != null)
 		{
 			_sprite.Texture = Tree.TreeTexture;
 			_sprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
 		}
-
 		// Final fallback: item icon (only if still no texture)
-		if (_sprite.Texture == null)
+		else if (_sprite.Texture == null)
 		{
 			var data = ItemDatabase.Instance?.Get(DropType.ToString());
 			if (data?.Icon != null)
@@ -172,15 +171,12 @@ public partial class ResourceNode : Node2D
 		int amount = (int)GD.RandRange(Tree.FruitDropMin, Tree.FruitDropMax + 1);
 		if (amount < Tree.FruitDropMin) amount = Tree.FruitDropMin;
 
-		SpawnDrop(Tree.FruitDropId, amount);
+		Inventory.Instance.AddItem(Tree.FruitDropId, amount);
 
 		_hasFruit = false;
 		_daysSinceHarvest = 0;
 		UpdateFruitVisuals();
 		UpdatePrompt();
-
-		string fruitName = ItemDatabase.Instance?.Get(Tree.FruitDropId)?.DisplayName ?? Tree.FruitDropId;
-		NotificationManager.Instance?.ShowPickup(fruitName, amount);
 	}
 
 	private void UpdatePrompt()
@@ -239,15 +235,18 @@ public partial class ResourceNode : Node2D
 	private void OnHurtBoxAreaEntered(Area2D area)
 	{
 		if (area.GetParent() is Player player)
-			TakeDamage(player.AttackDamage);
+			TakeDamage(player.AttackDamage, player);
 	}
 
-	public void TakeDamage(int damage)
+	public void TakeDamage(int damage, Player attacker = null)
 	{
 		if (Health <= 0 || _isStump) return;
 
 		Health -= damage;
 		FlashHit();
+
+		// Trigger screen shake for impact
+		attacker?.ShakeCamera(0.12f, Tree != null ? 3.5f : 2.0f);
 
 		if (Health <= 0)
 			ChopDown();

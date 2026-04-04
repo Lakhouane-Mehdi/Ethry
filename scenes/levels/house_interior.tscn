@@ -18,7 +18,8 @@
 [ext_resource type="PackedScene" uid="uid://biwj1dv1p6kdm" path="res://scenes/interactables/crafting_table.tscn" id="15_craft"]
 [ext_resource type="PackedScene" path="res://scenes/interactables/furnace.tscn" id="16_furnace"]
 [ext_resource type="PackedScene" path="res://scenes/interactables/anvil.tscn" id="17_anvil"]
-[ext_resource type="PackedScene" path="res://scenes/entities/npcs/npc_chloe.tscn" id="18_chloe"]
+[ext_resource type="PackedScene" uid="uid://d2vmeeagc5yua" path="res://scenes/entities/npcs/npc_chloe.tscn" id="18_chloe"]
+[ext_resource type="PackedScene" uid="uid://d2foe1n8r33x" path="res://scenes/interactables/bed.tscn" id="19_bed"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_2swbv"]
 texture = ExtResource("1_44jyu")
@@ -1484,7 +1485,7 @@ tile_set = SubResource("TileSet_62sb2")
 
 [node name="decoration" type="TileMapLayer" parent="." unique_id=1935450242]
 scale = Vector2(4, 4)
-tile_map_data = PackedByteArray("AAAFAAEAAQABAAAAAAAFAAIAAQABAAEAAAAGAAEAAQACAAAAAAAGAAIAAQACAAEAAAACAAMAAwAFAAYAAAACAAQAAwAFAAcAAAADAAMAAwAGAAYAAAADAAQAAwAGAAcAAAABAAIABAAAAAcAAAACAAIABAABAAcAAAAHAAAABAADAAIAAAABAAYABQAAAAIAAAABAAcABQAAAAMAAAACAAYABQABAAIAAAACAAcABQABAAMAAAADAAYABQACAAIAAAADAAcABQACAAMAAAABAAAABgAPAAAAAAABAAEABgAPAAEAAAACAAAABgAQAAAAAAACAAEABgAQAAEAAAADAAAABgARAAAAAAADAAEABgARAAEAAAAIAAAABgAPAAAAAAAIAAEABgAPAAEAAAAJAAAABgAQAAAAAAAJAAEABgAQAAEAAAAKAAAABgARAAAAAAAKAAEABgARAAEAAAAIAAMAAAAAAAIAAAAIAAQAAAAAAAMAAAAJAAMAAAABAAIAAAAJAAQAAAABAAMAAAA=")
+tile_map_data = PackedByteArray("AAAFAAEAAQABAAAAAAAFAAIAAQABAAEAAAAGAAEAAQACAAAAAAAGAAIAAQACAAEAAAACAAMAAwAFAAYAAAACAAQAAwAFAAcAAAADAAMAAwAGAAYAAAADAAQAAwAGAAcAAAABAAIABAAAAAcAAAACAAIABAABAAcAAAAHAAAABAADAAIAAAABAAYABQAAAAIAAAABAAcABQAAAAMAAAACAAYABQABAAIAAAACAAcABQABAAMAAAADAAYABQACAAIAAAADAAcABQACAAMAAAABAAAABgAPAAAAAAABAAEABgAPAAEAAAACAAAABgAQAAAAAAACAAEABgAQAAEAAAADAAAABgARAAAAAAADAAEABgARAAEAAAAIAAAABgAPAAAAAAAIAAEABgAPAAEAAAAJAAAABgAQAAAAAAAJAAEABgAQAAEAAAAKAAAABgARAAAAAAAKAAEABgARAAEAAAA=")
 tile_set = SubResource("TileSet_i28ag")
 
 [node name="Player" parent="." unique_id=2095088575 instance=ExtResource("10_7iw3j")]
@@ -1519,14 +1520,16 @@ shape = SubResource("RectangleShape2D_exit")
 [node name="CraftingTable" parent="." unique_id=1813959579 instance=ExtResource("15_craft")]
 position = Vector2(266, 158)
 
-[node name="Furnace" parent="." instance=ExtResource("16_furnace")]
+[node name="Furnace" parent="." unique_id=128400293 instance=ExtResource("16_furnace")]
 position = Vector2(406, 158)
 
-[node name="Anvil" parent="." instance=ExtResource("17_anvil")]
+[node name="Anvil" parent="." unique_id=1492740304 instance=ExtResource("17_anvil")]
 position = Vector2(476, 158)
 
-[node name="ChefChloe" parent="." instance=ExtResource("18_chloe")]
+[node name="ChefChloe" parent="." unique_id=1406859560 instance=ExtResource("18_chloe")]
 position = Vector2(140, 300)
 
-[node name="InventoryUI" parent="." unique_id=1802613694 instance=ExtResource("13_inv")]
+[node name="Bed" parent="." unique_id=1301821752 instance=ExtResource("19_bed")]
+position = Vector2(595, 260)
 
+[node name="InventoryUI" parent="." unique_id=1802613694 instance=ExtResource("13_inv")]

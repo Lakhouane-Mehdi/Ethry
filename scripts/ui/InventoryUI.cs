@@ -219,6 +219,17 @@ public partial class InventoryUI : CanvasLayer
 
 		if (_isVisible)
 		{
+			// Fancy opening animation
+			_root.Scale = new Vector2(0.95f, 0.95f);
+			_root.Modulate = new Color(1, 1, 1, 0);
+			_root.PivotOffset = _root.Size / 2;
+
+			var tween = CreateTween().SetParallel(true).SetIgnoreTimeScale();
+			tween.TweenProperty(_root, "scale", Vector2.One, 0.18f)
+				 .SetTrans(Tween.TransitionType.Back)
+				 .SetEase(Tween.EaseType.Out);
+			tween.TweenProperty(_root, "modulate:a", 1.0f, 0.12f);
+
 			_selectedIndex = -1;
 			_activePanel = Panel.Grid;
 			_equipSelectedIndex = 0;
@@ -371,8 +382,8 @@ public partial class InventoryUI : CanvasLayer
 		btn.FocusMode   = Control.FocusModeEnum.None;
 		int cap = idx;
 		btn.Pressed      += () => { _activePanel = Panel.Grid; _selectedIndex = cap; UpdateVisuals(); };
-		btn.MouseEntered += () => ShowTooltip(cap);
-		btn.MouseExited  += () => { if (_tooltip != null) _tooltip.Visible = false; };
+		btn.MouseEntered += () => { ShowTooltip(cap); AnimateHover(btn); };
+		btn.MouseExited  += () => { if (_tooltip != null) _tooltip.Visible = false; btn.Scale = Vector2.One; };
 		_root.AddChild(btn);
 		_gridButtons[idx] = btn;
 	}
@@ -408,12 +419,15 @@ public partial class InventoryUI : CanvasLayer
 		_equipSelectors[equipIdx] = sel;
 
 		btn = new Button { Flat = true };
+		var captureBtn = btn; // Capture for lambda
 		btn.Position    = new Vector2(px, py);
 		btn.Size        = new Vector2(SlotW, SlotH);
 		btn.MouseFilter = Control.MouseFilterEnum.Stop;
 		btn.FocusMode   = Control.FocusModeEnum.None;
 		int cap = equipIdx;
 		btn.Pressed += () => { _activePanel = Panel.Equipment; _equipSelectedIndex = cap; UpdateVisuals(); };
+		btn.MouseEntered += () => AnimateHover(captureBtn);
+		btn.MouseExited  += () => captureBtn.Scale = Vector2.One;
 		_root.AddChild(btn);
 
 		return icon;
@@ -637,11 +651,21 @@ public partial class InventoryUI : CanvasLayer
 	{
 		// Grid selectors
 		for (int i = 0; i < Cols * Rows; i++)
-			_gridSelectors[i].Visible = (_activePanel == Panel.Grid && i == _selectedIndex && i < _itemOrder.Count);
+		{
+			bool isSel = (_activePanel == Panel.Grid && i == _selectedIndex && i < _itemOrder.Count);
+			if (isSel && !_gridSelectors[i].Visible)
+				AnimatePop(_gridSelectors[i]);
+			_gridSelectors[i].Visible = isSel;
+		}
 
 		// Equipment selectors
 		for (int i = 0; i < 4; i++)
-			_equipSelectors[i].Visible = (_activePanel == Panel.Equipment && i == _equipSelectedIndex);
+		{
+			bool isSel = (_activePanel == Panel.Equipment && i == _equipSelectedIndex);
+			if (isSel && !_equipSelectors[i].Visible)
+				AnimatePop(_equipSelectors[i]);
+			_equipSelectors[i].Visible = isSel;
+		}
 
 		// Detail panel
 		if (_activePanel == Panel.Grid && _selectedIndex >= 0 && _selectedIndex < _itemOrder.Count)
@@ -751,6 +775,24 @@ public partial class InventoryUI : CanvasLayer
 	{
 		Equipment.Instance.Unequip(slot);
 		Refresh();
+	}
+
+	// ── Animations ─────────────────────────────────────────────────────────
+	private void AnimatePop(Control target)
+	{
+		target.PivotOffset = target.Size / 2;
+		target.Scale = new Vector2(1.3f, 1.3f);
+		var tween = CreateTween().SetIgnoreTimeScale();
+		tween.TweenProperty(target, "scale", Vector2.One, 0.16f)
+			 .SetTrans(Tween.TransitionType.Back)
+			 .SetEase(Tween.EaseType.Out);
+	}
+
+	private void AnimateHover(Button target)
+	{
+		target.PivotOffset = target.Size / 2;
+		var tween = CreateTween().SetIgnoreTimeScale();
+		tween.TweenProperty(target, "scale", new Vector2(1.1f, 1.1f), 0.1f);
 	}
 
 	// ── Texture helpers ────────────────────────────────────────────────────
