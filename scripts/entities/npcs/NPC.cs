@@ -1,8 +1,9 @@
 using Godot;
+using FSM;
 
 /// <summary>
 /// Interactable NPC with a proper bottom-screen dialogue box (Stardew-style).
-/// Press [E] to open dialogue, [E] again to advance through lines, closes on last.
+/// Refactored to use a StateMachine for modular logic.
 /// </summary>
 public partial class NPC : CharacterBody2D
 {
@@ -13,8 +14,8 @@ public partial class NPC : CharacterBody2D
 
 	[Export] public int[] ShopItems = System.Array.Empty<int>();
 
+	private FSM.StateMachine _stateMachine;
 	private bool _playerInRange;
-	private bool _dialogueOpen;
 	private int  _pageIndex;      // current line index within THIS session
 	private int  _cycleSeed;      // which starting line in the array for next session
 
@@ -30,13 +31,16 @@ public partial class NPC : CharacterBody2D
 	private Label         _dlgContinueHint;
 	private Tween         _blinkTween;
 
+	public bool PlayerInRange => _playerInRange;
+
 	private static readonly Texture2D FramesTex =
 		GD.Load<Texture2D>("res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png");
 
-	// ── Lifecycle ───────────────────────────────────────────────────────────
 	public override void _Ready()
 	{
-		// ── Floating prompt (screen-space TopLevel anchor) ──
+		_stateMachine = GetNode<FSM.StateMachine>("StateMachine");
+
+		// ── Floating prompt ──
 		var anchor = new Node2D { TopLevel = true };
 		AddChild(anchor);
 
@@ -56,18 +60,17 @@ public partial class NPC : CharacterBody2D
 		_prompt.Visible  = false;
 		_uiRoot.AddChild(_prompt);
 
-		// ── Bottom dialogue box (CanvasLayer so it's always screen-space) ──
 		BuildDialogueBox();
 
 		// ── Proximity detection ──
 		var area   = new Area2D { CollisionLayer = 0, CollisionMask = 1 };
-		var shape  = new CollisionShape2D();
-		var circle = new CircleShape2D { Radius = 36f };
-		shape.Shape = circle;
+		var shape  = new CollisionShape2D { Shape = new CircleShape2D { Radius = 36f } };
 		area.AddChild(shape);
 		AddChild(area);
 		area.BodyEntered += OnBodyEntered;
 		area.BodyExited  += OnBodyExited;
+
+		_stateMachine.TransitionTo("Idle");
 	}
 
 	private void BuildDialogueBox()
@@ -76,14 +79,12 @@ public partial class NPC : CharacterBody2D
 		_dlgLayer.ProcessMode = ProcessModeEnum.Always;
 		AddChild(_dlgLayer);
 
-		// Full-screen control so children can use anchors
 		_dlgScreen = new Control();
 		_dlgScreen.SetAnchorsPreset(Control.LayoutPreset.FullRect);
 		_dlgScreen.ProcessMode = ProcessModeEnum.Always;
 		_dlgScreen.Visible = false;
 		_dlgLayer.AddChild(_dlgScreen);
 
-		// ── Panel background ──────────────────────────────────────────────
 		var boxAtlas = new AtlasTexture { Atlas = FramesTex, Region = new Rect2(52, 49, 40, 46) };
 		var boxStyle = new StyleBoxTexture
 		{
@@ -95,43 +96,31 @@ public partial class NPC : CharacterBody2D
 		};
 		var panel = new PanelContainer();
 		panel.AddThemeStyleboxOverride("panel", boxStyle);
-		// Anchored bottom-wide, 120px tall, 20px side margins, 12px from bottom
-		panel.AnchorLeft   = 0f; panel.AnchorRight  = 1f;
-		panel.AnchorTop    = 1f; panel.AnchorBottom = 1f;
-		panel.OffsetLeft   =  20f;
-		panel.OffsetRight  = -20f;
-		panel.OffsetTop    = -130f;
-		panel.OffsetBottom = -12f;
+		panel.AnchorLeft = 0f; panel.AnchorRight = 1f;
+		panel.AnchorTop = 1f; panel.AnchorBottom = 1f;
+		panel.OffsetLeft = 20f; panel.OffsetRight = -20f;
+		panel.OffsetTop = -130f; panel.OffsetBottom = -12f;
 		_dlgScreen.AddChild(panel);
 
-		// ── VBox: name + text + hint row ─────────────────────────────────
 		var vbox = new VBoxContainer();
 		vbox.AddThemeConstantOverride("separation", 6);
 		panel.AddChild(vbox);
 
 		_dlgNameLabel = new Label();
 		_dlgNameLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.38f, 0.1f));
-		_dlgNameLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.7f));
 		_dlgNameLabel.AddThemeFontSizeOverride("font_size", 13);
-		_dlgNameLabel.AddThemeConstantOverride("shadow_offset_x", 1);
-		_dlgNameLabel.AddThemeConstantOverride("shadow_offset_y", 1);
 		vbox.AddChild(_dlgNameLabel);
 
 		_dlgTextLabel = new Label();
 		_dlgTextLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 		_dlgTextLabel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
 		_dlgTextLabel.AddThemeColorOverride("font_color", new Color(0.12f, 0.07f, 0.02f));
-		_dlgTextLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.4f));
 		_dlgTextLabel.AddThemeFontSizeOverride("font_size", 15);
-		_dlgTextLabel.AddThemeConstantOverride("shadow_offset_x", 1);
-		_dlgTextLabel.AddThemeConstantOverride("shadow_offset_y", 1);
 		vbox.AddChild(_dlgTextLabel);
 
-		// Hint row: spacer + "▼ E to continue"
 		var hintRow = new HBoxContainer();
-		var spacer  = new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+		var spacer = new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
 		hintRow.AddChild(spacer);
-
 		_dlgContinueHint = new Label();
 		_dlgContinueHint.AddThemeColorOverride("font_color", new Color(0.5f, 0.32f, 0.1f));
 		_dlgContinueHint.AddThemeFontSizeOverride("font_size", 12);
@@ -139,105 +128,94 @@ public partial class NPC : CharacterBody2D
 		vbox.AddChild(hintRow);
 	}
 
-	// ── Process ─────────────────────────────────────────────────────────────
 	public override void _Process(double delta)
 	{
-		// Keep floating prompt above NPC in world-to-screen
 		_uiRoot.GlobalPosition = GlobalPosition + new Vector2(0, -52);
-
-		if (!_playerInRange) return;
-		if (Input.IsActionJustPressed("interact"))
-			Interact();
+		_stateMachine?.Update(delta);
 	}
 
-	// ── Dialogue flow ──────────────────────────────────────────────────────
-	private void Interact()
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		_stateMachine?.HandleInput(@event);
+	}
+
+	// ── State Interface ───────────────────────────────────────────────────
+	public void UpdatePromptVisibility()
+	{
+		_prompt.Visible = _playerInRange && _stateMachine.CurrentState is NPCIdleState;
+	}
+
+	public void StartDialogue()
 	{
 		if (DialogueLines.Length == 0) return;
+		_pageIndex = _cycleSeed;
+		_stateMachine.TransitionTo("Talking");
+	}
 
-		if (_dialogueOpen)
+	public void OpenDialogueUI()
+	{
+		_dlgScreen.Visible = true;
+		_prompt.Visible = false;
+		ShowPage(_pageIndex);
+	}
+
+	public void AdvanceDialogue()
+	{
+		_pageIndex++;
+		if (_pageIndex < DialogueLines.Length)
 		{
-			// Advance to next line
-			_pageIndex++;
-			if (_pageIndex < DialogueLines.Length)
-				ShowPage(_pageIndex);
-			else
-			{
-				// After last line: open shop if merchant, otherwise close
-				_cycleSeed = (_cycleSeed + 1) % DialogueLines.Length;
-				if (Role == NpcRole.Merchant)
-				{
-					CloseDialogue();
-					var shop = GetNodeOrNull<ShopUI>("ShopUI");
-					shop?.Open();
-				}
-				else
-				{
-					CloseDialogue();
-				}
-			}
+			ShowPage(_pageIndex);
 		}
 		else
 		{
-			// Start new session (cycle from where we left off)
-			_pageIndex = _cycleSeed;
-			ShowPage(_pageIndex);
+			_cycleSeed = (_cycleSeed + 1) % DialogueLines.Length;
+			if (Role == NpcRole.Merchant)
+				_stateMachine.TransitionTo("Shop");
+			else
+				_stateMachine.TransitionTo("Idle");
 		}
+	}
+
+	public void HideDialogueUI()
+	{
+		_dlgScreen.Visible = false;
+		_blinkTween?.Kill();
+		UpdatePromptVisibility();
 	}
 
 	private void ShowPage(int index)
 	{
-		_dialogueOpen = true;
-		_prompt.Visible = false;
-		_dlgScreen.Visible = true;
-
 		_dlgNameLabel.Text = NpcName;
 		_dlgTextLabel.Text = DialogueLines[index];
 
 		bool hasMore = index < DialogueLines.Length - 1;
-		// If merchant and this is the last line: hint opens shop next
 		if (!hasMore && Role == NpcRole.Merchant)
 			_dlgContinueHint.Text = "▼   Press [E]  to browse shop";
 		else
 			_dlgContinueHint.Text = hasMore ? "▼   Press [E]" : "✓   Press [E]  to close";
 
-		// Blink the hint
 		_blinkTween?.Kill();
 		_blinkTween = _dlgContinueHint.CreateTween().SetLoops();
-		_blinkTween.TweenProperty(_dlgContinueHint, "modulate:a", 0.25f, 0.55f)
-				   .SetTrans(Tween.TransitionType.Sine);
-		_blinkTween.TweenProperty(_dlgContinueHint, "modulate:a", 1.0f,  0.55f)
-				   .SetTrans(Tween.TransitionType.Sine);
+		_blinkTween.TweenProperty(_dlgContinueHint, "modulate:a", 0.25f, 0.55f).SetTrans(Tween.TransitionType.Sine);
+		_blinkTween.TweenProperty(_dlgContinueHint, "modulate:a", 1.0f, 0.55f).SetTrans(Tween.TransitionType.Sine);
 	}
 
-	private void CloseDialogue()
-	{
-		_dialogueOpen = false;
-		_blinkTween?.Kill();
-		_dlgScreen.Visible = false;
-		if (_playerInRange) _prompt.Visible = true;
-	}
-
-	// ── Area callbacks ────────────────────────────────────────────────────
 	private void OnBodyEntered(Node2D body)
 	{
 		if (body is not CharacterBody2D || !body.IsInGroup("player")) return;
 		_playerInRange = true;
-		if (!_dialogueOpen) _prompt.Visible = true;
+		UpdatePromptVisibility();
 	}
 
 	private void OnBodyExited(Node2D body)
 	{
 		if (body is not CharacterBody2D || !body.IsInGroup("player")) return;
 		_playerInRange = false;
-		_prompt.Visible = false;
-		if (_dialogueOpen) CloseDialogue();
+		UpdatePromptVisibility();
+		
+		if (_stateMachine.CurrentState is NPCTalkingState or NPCShopState)
+			_stateMachine.TransitionTo("Idle");
 	}
 }
 
-public enum NpcRole
-{
-	Dialogue,
-	Merchant,
-	QuestGiver,
-}
+public enum NpcRole { Dialogue, Merchant, QuestGiver }

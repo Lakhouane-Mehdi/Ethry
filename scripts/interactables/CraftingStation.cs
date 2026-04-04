@@ -9,7 +9,7 @@ public partial class CraftingStation : Area2D
 {
 	[Export] public string StationTitle  = "CRAFTING TABLE";
 	[Export] public string PromptText    = "Press E to Craft";
-	[Export] public int    StationType   = 0; // 0 = Table, 1 = Furnace, 2 = Anvil
+	[Export] public int    StationType   = 0; // 0 = Table, 1 = Furnace, 2 = Anvil, 3 = Cooking
 
 	private bool       _playerInRange;
 	private Label      _prompt;
@@ -65,7 +65,8 @@ public partial class CraftingStation : Area2D
 	{
 		1 => CraftingRecipes.Furnace,
 		2 => CraftingRecipes.Anvil,
-		_ => CraftingRecipes.All,
+		3 => CraftingRecipes.Cooking,
+		_ => CraftingRecipes.Table,
 	};
 
 	private void OnBodyEntered(Node2D body)

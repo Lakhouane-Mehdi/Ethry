@@ -20,7 +20,7 @@ public partial class CraftingUI : CanvasLayer
 	private int  _selectedIndex;
 	private bool _isOpen;
 	public  bool IsOpen => _isOpen;
-	private CraftingRecipe[] _recipes = CraftingRecipes.All;
+	private CraftingRecipe[] _recipes = CraftingRecipes.Table;
 
 	// ── Asset constants ────────────────────────────────────────────────────
 	private readonly System.Collections.Generic.Dictionary<string, Texture2D> _textureCache = new();

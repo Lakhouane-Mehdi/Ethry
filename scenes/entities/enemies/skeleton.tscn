@@ -3,6 +3,12 @@
 [ext_resource type="Script" uid="uid://sorandqbx74d" path="res://scripts/entities/enemies/Skeleton.cs" id="1_skel"]
 [ext_resource type="Texture2D" uid="uid://coqrganmdr0aq" path="res://assets/cute_fantasy/cute_fantasy/enemies/skeleton/skeleton.png" id="2_sprite"]
 [ext_resource type="Texture2D" uid="uid://c0g2k6kaxwxmh" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_bars.png" id="3_bars"]
+[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="4_fsm"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/fsm/EnemyIdleState.cs" id="5_idle"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/fsm/EnemyChaseState.cs" id="6_chase"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/fsm/EnemyAttackState.cs" id="7_attack"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/fsm/EnemyHurtState.cs" id="8_hurt"]
+[ext_resource type="Script" path="res://scripts/entities/enemies/fsm/EnemyDeathState.cs" id="9_death"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_wbsuy"]
 atlas = ExtResource("2_sprite")
@@ -382,3 +388,22 @@ region_rect = Rect2(114.92255, 105.681854, 28.248276, 3.2516937)
 texture = ExtResource("3_bars")
 region_enabled = true
 region_rect = Rect2(1.971684, 6.851268, 28.138485, 3.3238945)
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("4_fsm")
+InitialState = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("5_idle")
+
+[node name="Chase" type="Node" parent="StateMachine"]
+script = ExtResource("6_chase")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("7_attack")
+
+[node name="Hurt" type="Node" parent="StateMachine"]
+script = ExtResource("8_hurt")
+
+[node name="Death" type="Node" parent="StateMachine"]
+script = ExtResource("9_death")

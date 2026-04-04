@@ -2,6 +2,10 @@
 
 [ext_resource type="Texture2D" uid="uid://day1hyvclriug" path="res://assets/cute_fantasy/cute_fantasy/NPCs (Premade)/Chef_Chloe.png" id="1_sprite"]
 [ext_resource type="Script" uid="uid://cbl2jdfqrgj5f" path="res://scripts/entities/npcs/NPC.cs" id="2_npc"]
+[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="3_fsm"]
+[ext_resource type="Script" path="res://scripts/entities/npcs/fsm/NPCIdleState.cs" id="4_idle"]
+[ext_resource type="Script" path="res://scripts/entities/npcs/fsm/NPCTalkingState.cs" id="5_talk"]
+[ext_resource type="Script" path="res://scripts/entities/npcs/fsm/NPCShopState.cs" id="6_shop"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_f0"]
 atlas = ExtResource("1_sprite")
@@ -73,4 +77,17 @@ frame_progress = 0.52764577
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1326445058]
 shape = SubResource("RectangleShape2D_body")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("3_fsm")
+InitialState = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("4_idle")
+
+[node name="Talking" type="Node" parent="StateMachine"]
+script = ExtResource("5_talk")
+
+[node name="Shop" type="Node" parent="StateMachine"]
+script = ExtResource("6_shop")
 
