@@ -22,6 +22,7 @@ public partial class ResourceNode : Node2D
 	[Export] public int DropMin = 1;
 	[Export] public int DropMax = 3;
 	[Export] public PackedScene ItemPickupScene;
+	[Export] public string RequiredTool = "";
 
 	[ExportGroup("Tree Mode (optional)")]
 	[Export] public TreeData Tree;
@@ -242,11 +243,32 @@ public partial class ResourceNode : Node2D
 	{
 		if (Health <= 0 || _isStump) return;
 
+		// Check tool requirement
+		if (!string.IsNullOrEmpty(RequiredTool) && attacker != null)
+		{
+			string equippedTool = attacker.EquippedToolId ?? "";
+			if (!equippedTool.ToLower().Contains(RequiredTool.ToLower()))
+			{
+				string article = "AEIOUaeiou".Contains(RequiredTool[0]) ? "an" : "a";
+				NotificationManager.Instance?.ShowInfo($"Need {article} {RequiredTool}!");
+				FlashHitWhite(); // Brief white flash for "blocked" hit
+				return;
+			}
+		}
+
 		Health -= damage;
 		FlashHit();
 
 		// Trigger screen shake for impact
 		attacker?.ShakeCamera(0.12f, Tree != null ? 3.5f : 2.0f);
+
+		// Spawn impact particles
+		Color pColor = DropType switch
+		{
+			ItemType.Stone or ItemType.Coal or ItemType.IronOre or ItemType.GoldOre or ItemType.Crystal => new Color(0.5f, 0.5f, 0.5f), // grey
+			_ => new Color(0.45f, 0.3f, 0.15f) // brown/wood
+		};
+		EffectsManager.Instance?.SpawnImpact(GlobalPosition, pColor, 6);
 
 		if (Health <= 0)
 			ChopDown();
@@ -258,6 +280,18 @@ public partial class ResourceNode : Node2D
 
 		_sprite.Modulate = new Color(1f, 0.4f, 0.4f);
 		GetTree().CreateTimer(0.12).Timeout += () =>
+		{
+			if (IsInstanceValid(_sprite))
+				_sprite.Modulate = Colors.White;
+		};
+	}
+
+	private void FlashHitWhite()
+	{
+		if (_sprite == null) return;
+
+		_sprite.Modulate = new Color(1.5f, 1.5f, 1.5f); // Overbright white
+		GetTree().CreateTimer(0.08).Timeout += () =>
 		{
 			if (IsInstanceValid(_sprite))
 				_sprite.Modulate = Colors.White;

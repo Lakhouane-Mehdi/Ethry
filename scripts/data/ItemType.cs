@@ -227,6 +227,19 @@ public static class ItemRegistry
 		ItemType.FishingRod => 1,
 		_                   => 0
 	};
+	
+	public static string GetToolPrefix(string itemId)
+	{
+		if (string.IsNullOrEmpty(itemId)) return "attack";
+		
+		string idLower = itemId.ToLower();
+		if (idLower.Contains("axe"))     return "axe";
+		if (idLower.Contains("pickaxe")) return "pickaxe";
+		if (idLower.Contains("shovel"))  return "shovel";
+		if (idLower.Contains("hoe"))     return "shovel"; // Map Hoe to Shovel per user request
+		
+		return "attack";
+	}
 
 	public static int GetArmorRating(ItemType type)
 	{

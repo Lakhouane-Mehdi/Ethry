@@ -11,8 +11,10 @@ public partial class Chest : Area2D
 
 	private bool _playerInRange;
 	private bool _opened;
+	private bool _initialLootGenerated;
 	private Label _prompt;
 	private AnimatedSprite2D _sprite;
+	private Inventory _inventory;
 
 	// Loot tables per tier — (item, minAmount, maxAmount, weight)
 	private static readonly (ItemType, int, int, int)[][] LootTables = new[]
@@ -71,6 +73,10 @@ public partial class Chest : Area2D
 		_sprite.AnimationFinished += OnAnimationFinished;
 		_sprite.Play("closed");
 
+		// Initialize private inventory for this chest
+		_inventory = new Inventory { IsPlayerInventory = false };
+		AddChild(_inventory);
+
 		_prompt = new Label();
 		_prompt.Text     = "Press E to Open";
 		_prompt.Position = new Vector2(-40, -50);
@@ -85,10 +91,15 @@ public partial class Chest : Area2D
 
 	public override void _Process(double delta)
 	{
-		if (!_playerInRange || _opened) return;
+		if (!_playerInRange) return;
 
 		if (Input.IsActionJustPressed("interact"))
-			Open();
+		{
+			if (!_opened)
+				Open();
+			else
+				OpenStorageUI();
+		}
 	}
 
 	private void Open()
@@ -100,40 +111,50 @@ public partial class Chest : Area2D
 
 	private void OnAnimationFinished()
 	{
-		if (_sprite.Animation == "open")
-			SpawnLoot();
+		// Only open the UI if the animation finished at the end (Lid is Open)
+		// Frame 0 is the start (Closed), Frame 5 is the end (Open)
+		if (_sprite.Animation == "open" && _sprite.Frame > 0)
+		{
+			if (!_initialLootGenerated)
+				GenerateInitialLoot();
+			
+			OpenStorageUI();
+		}
 	}
 
-	private void SpawnLoot()
+	private void OpenStorageUI()
 	{
+		string chestName = Tier switch {
+			1 => "Metal Chest",
+			2 => "Gold Chest",
+			3 => "Jeweled Chest",
+			_ => "Wooden Chest"
+		};
+		// Using dynamic Call to avoid compiler name identification issues with Autoload Scenes
+		GetTree().Root.GetNode("StorageUI").Call("Open", _inventory, chestName, this);
+	}
+
+	/// <summary>Called by StorageUI when closing to snap the lid shut.</summary>
+	public void CloseStorage()
+	{
+		_sprite.PlayBackwards("open");
+	}
+
+	private void GenerateInitialLoot()
+	{
+		_initialLootGenerated = true;
 		int tier  = Mathf.Clamp(Tier, 0, LootTables.Length - 1);
 		var table = LootTables[tier];
-		int rolls = 2 + tier; // wood=2, metal=3, gold=4, jeweled=5
-
-		var pickupScene = GD.Load<PackedScene>("res://scenes/items/item_pickup.tscn");
+		int rolls = 2 + tier; 
 
 		for (int i = 0; i < rolls; i++)
 		{
 			var (itemType, minAmt, maxAmt, _) = PickWeighted(table);
 			int amount = (int)GD.RandRange(minAmt, maxAmt + 1);
-			if (amount < minAmt) amount = minAmt;
-
-			var pickup = pickupScene.Instantiate<ItemPickup>();
-			pickup.Type   = itemType;
-			pickup.Amount = amount;
-
-			// Scatter items around the chest
-			float angle  = (float)GD.RandRange(0, Mathf.Tau);
-			float radius = (float)GD.RandRange(20, 45);
-			pickup.Position = GlobalPosition + new Vector2(
-				Mathf.Cos(angle) * radius,
-				Mathf.Sin(angle) * radius
-			);
-
-			GetTree().CurrentScene.AddChild(pickup);
+			_inventory.AddItem(itemType.ToString(), amount);
 		}
 
-		NotificationManager.Instance?.Show("Chest opened!", new Color(1f, 0.85f, 0.3f));
+		NotificationManager.Instance?.Show("Chest contents discovered!", new Color(1f, 0.85f, 0.3f));
 	}
 
 	private static (ItemType, int, int, int) PickWeighted((ItemType, int, int, int)[] table)
@@ -157,8 +178,8 @@ public partial class Chest : Area2D
 	{
 		if (body is not CharacterBody2D || !body.IsInGroup("player")) return;
 		_playerInRange = true;
-		if (!_opened)
-			_prompt.Visible = true;
+		_prompt.Text = _opened ? "Press E for Storage" : "Press E to Open";
+		_prompt.Visible = true;
 	}
 
 	private void OnBodyExited(Node2D body)

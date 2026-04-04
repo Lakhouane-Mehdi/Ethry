@@ -21,6 +21,7 @@ script = ExtResource("1_rnode")
 Health = 5
 DropType = 1
 ItemPickupScene = ExtResource("3_pickup")
+RequiredTool = "Pickaxe"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1013643609]
 position = Vector2(0, -6)

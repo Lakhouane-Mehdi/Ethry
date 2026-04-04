@@ -28,11 +28,13 @@ GameHUD="*res://scripts/ui/GameHUD.cs"
 Hotbar="*res://scripts/ui/Hotbar.cs"
 SaveSystem="*res://scripts/systems/SaveSystem.cs"
 PauseMenu="*res://scripts/ui/PauseMenu.cs"
+StorageUI="*res://scenes/ui/storage_ui.tscn"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+gui/common/snap_controls_to_pixels=true
 
 [dotnet]
 

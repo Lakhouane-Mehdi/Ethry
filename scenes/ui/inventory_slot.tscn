@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://cxjy0d2p8i7x2"]
+
+[ext_resource type="Script" path="res://scripts/ui/InventorySlot.cs" id="1_slot"]
+[ext_resource type="Texture2D" uid="uid://0o8uw755njmj" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png" id="2_frames"]
+[ext_resource type="FontFile" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/font.fnt" id="3_font"]
+
+[node name="InventorySlot" type="Control"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 1
+script = ExtResource("1_slot")
+
+[node name="BG" type="NinePatchRect" parent="."]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_frames")
+region_rect = Rect2(48, 0, 32, 32)
+patch_margin_left = 12
+patch_margin_top = 12
+patch_margin_right = 12
+patch_margin_bottom = 12
+
+[node name="Icon" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -24.0
+offset_right = 24.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -23.0
+offset_right = -4.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = "10"
+horizontal_alignment = 2
+vertical_alignment = 2

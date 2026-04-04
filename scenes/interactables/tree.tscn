@@ -15,6 +15,7 @@ process_priority = 1
 scale = Vector2(2, 2)
 script = ExtResource("1_rnode")
 ItemPickupScene = ExtResource("3_pickup")
+RequiredTool = "Axe"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1475963941]
 position = Vector2(0, -17)

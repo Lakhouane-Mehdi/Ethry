@@ -1,0 +1,225 @@
+[gd_scene load_steps=12 format=3 uid="uid://d3yq8v8p6k6p2"]
+
+[ext_resource type="Script" path="res://scripts/ui/StorageUI.cs" id="1_stui"]
+[ext_resource type="Material" uid="uid://blur_mat_ui" path="res://shaders/blur_material.tres" id="2_blur"]
+[ext_resource type="Texture2D" uid="uid://0o8uw755njmj" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png" id="3_frames"]
+[ext_resource type="Texture2D" uid="uid://c48xou5licw3e" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_ribbons.png" id="4_ribbons"]
+[ext_resource type="FontFile" path="res://assets/cute_fantasy_ui/cute_fantasy_ui/font.fnt" id="5_font"]
+
+[sub_resource type="AtlasTexture" id="AtlasTex_Window"]
+atlas = ExtResource("3_frames")
+region = Rect2(4, 49, 40, 46)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uv8yv"]
+
+[sub_resource type="AtlasTexture" id="AtlasTex_Ribbon"]
+atlas = ExtResource("4_ribbons")
+region = Rect2(90, 0, 92, 23)
+
+[node name="StorageUI" type="CanvasLayer"]
+process_mode = 3
+layer = 10
+script = ExtResource("1_stui")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="Root"]
+copy_mode = 2
+
+[node name="Overlay" type="ColorRect" parent="Root"]
+material = ExtResource("2_blur")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.4)
+
+[node name="Panels" type="HBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -250.0
+offset_right = 400.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 40
+
+[node name="PlayerPanel" type="PanelContainer" parent="Root/Panels"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_uv8yv")
+
+[node name="Frame" type="NinePatchRect" parent="Root/Panels/PlayerPanel"]
+texture_filter = 1
+layout_mode = 2
+texture = SubResource("AtlasTex_Window")
+patch_margin_left = 12
+patch_margin_top = 12
+patch_margin_right = 12
+patch_margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Root/Panels/PlayerPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RibbonBox" type="Control" parent="Root/Panels/PlayerPanel/VBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="Ribbon" type="TextureRect" parent="Root/Panels/PlayerPanel/VBox/RibbonBox"]
+custom_minimum_size = Vector2(184, 46)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -92.0
+offset_top = -18.0
+offset_right = 92.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("AtlasTex_Ribbon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="Root/Panels/PlayerPanel/VBox/RibbonBox"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = -2.0
+offset_right = 90.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.321569, 0.156863, 0.0588235, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "YOUR INVENTORY"
+horizontal_alignment = 1
+
+[node name="Margin" type="MarginContainer" parent="Root/Panels/PlayerPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="PlayerGrid" type="GridContainer" parent="Root/Panels/PlayerPanel/VBox/Margin"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 5
+
+[node name="ChestPanel" type="PanelContainer" parent="Root/Panels"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_uv8yv")
+
+[node name="Frame" type="NinePatchRect" parent="Root/Panels/ChestPanel"]
+texture_filter = 1
+layout_mode = 2
+texture = SubResource("AtlasTex_Window")
+patch_margin_left = 12
+patch_margin_top = 12
+patch_margin_right = 12
+patch_margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Root/Panels/ChestPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RibbonBox" type="Control" parent="Root/Panels/ChestPanel/VBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="Ribbon" type="TextureRect" parent="Root/Panels/ChestPanel/VBox/RibbonBox"]
+custom_minimum_size = Vector2(184, 46)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -92.0
+offset_top = -18.0
+offset_right = 92.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("AtlasTex_Ribbon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ChestLabel" type="Label" parent="Root/Panels/ChestPanel/VBox/RibbonBox"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = -2.0
+offset_right = 90.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.321569, 0.156863, 0.0588235, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "CHEST"
+horizontal_alignment = 1
+
+[node name="Margin" type="MarginContainer" parent="Root/Panels/ChestPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="ChestGrid" type="GridContainer" parent="Root/Panels/ChestPanel/VBox/Margin"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 5
+
+[node name="Hint" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -60.0
+offset_right = 200.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 0.8)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "Click items to transfer  •  [ESC] or [I] to close"
+horizontal_alignment = 1

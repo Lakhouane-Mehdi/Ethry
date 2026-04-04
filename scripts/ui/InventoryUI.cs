@@ -35,6 +35,7 @@ public partial class InventoryUI : CanvasLayer
 
 	// ── Scene nodes ────────────────────────────────────────────────────────
 	private Control       _root;
+	private Control       _overlay;
 	private TextureRect[] _gridIcons;
 	private Label[]       _gridCounts;
 	private TextureRect[] _gridSelectors;
@@ -60,6 +61,8 @@ public partial class InventoryUI : CanvasLayer
 	private const string DefaultPremadePath   = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_premade.png";
 	private const string DefaultSelectorsPath = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_selectors.png";
 	private const string DefaultFramesPath    = "res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png";
+	private const string DefaultFontPath      = "res://assets/cute_fantasy_ui/cute_fantasy_ui/font.fnt";
+	private const string BlurMatPath          = "res://shaders/blur_material.tres";
 
 	private const int Cols = 5;
 	private const int Rows = 6;
@@ -99,11 +102,28 @@ public partial class InventoryUI : CanvasLayer
 		// Keeps processing while tree is paused
 		ProcessMode = ProcessModeEnum.Always;
 
-		// Root control anchored to right side of screen
+		// ── Blur Backdrop ──────────────────────────────────────────────────
+		_overlay = new Control();
+		_overlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		_overlay.Visible = false;
+		AddChild(_overlay);
+
+		var bbc = new BackBufferCopy { CopyMode = BackBufferCopy.CopyModeEnum.Viewport };
+		_overlay.AddChild(bbc);
+
+		var blur = new ColorRect();
+		blur.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		blur.Color = new Color(0, 0, 0, 0.4f);
+		if (FileAccess.FileExists(BlurMatPath))
+			blur.Material = GD.Load<ShaderMaterial>(BlurMatPath);
+		_overlay.AddChild(blur);
+
+		// Root control anchored to center
 		_root = new Control();
 		_root.SetAnchorsPreset(Control.LayoutPreset.Center);
 		_root.Size = new Vector2(PremadeRegion.Size.X * UIScale, PremadeRegion.Size.Y * UIScale);
-		_root.Position = new Vector2(-PremadeRegion.Size.X * UIScale / 2f, -PremadeRegion.Size.Y * UIScale / 2f);
+		_root.Position = new Vector2(-_root.Size.X / 2f, -_root.Size.Y / 2f);
+		_root.PivotOffset = _root.Size / 2;
 		_root.Visible = false;
 		AddChild(_root);
 
@@ -173,13 +193,15 @@ public partial class InventoryUI : CanvasLayer
 
 		// Close hint
 		var closeHint = new Label();
-		closeHint.Text = "[I] / [Esc] to close";
+		closeHint.Text = "[I] or [ESC] to Close";
 		closeHint.Position = new Vector2(PremadeRegion.Size.X * UIScale / 2f - 65,
 										  PremadeRegion.Size.Y * UIScale - 13);
 		closeHint.Size = new Vector2(130, 12);
 		closeHint.HorizontalAlignment = HorizontalAlignment.Center;
-		closeHint.AddThemeColorOverride("font_color", new Color(0.4f, 0.3f, 0.15f, 0.7f));
-		closeHint.AddThemeFontSizeOverride("font_size", 8);
+		closeHint.AddThemeColorOverride("font_color", new Color(0.35f, 0.25f, 0.12f, 0.8f));
+		closeHint.AddThemeFontSizeOverride("font_size", 9);
+		if (FileAccess.FileExists(DefaultFontPath)) 
+			closeHint.AddThemeFontOverride("font", GD.Load<Font>(DefaultFontPath));
 		closeHint.MouseFilter = Control.MouseFilterEnum.Ignore;
 		_root.AddChild(closeHint);
 
@@ -215,6 +237,7 @@ public partial class InventoryUI : CanvasLayer
 	{
 		_isVisible = !_isVisible;
 		_root.Visible = _isVisible;
+		_overlay.Visible = _isVisible;
 		if (_tooltip != null) _tooltip.Visible = false;
 
 		if (_isVisible)
@@ -439,9 +462,11 @@ public partial class InventoryUI : CanvasLayer
 		lbl.Position = new Vector2(x, y);
 		lbl.Size     = new Vector2(w, 14);
 		lbl.Text     = text;
-		lbl.AddThemeColorOverride("font_color", new Color(0.85f, 0.7f, 0.4f));
-		lbl.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.8f));
+		lbl.AddThemeColorOverride("font_color", new Color(0.35f, 0.25f, 0.12f)); // Dark brown for readability on tan
+		lbl.AddThemeColorOverride("font_shadow_color", new Color(1, 1, 1, 0.3f)); // Light shadow for "etched" look
 		lbl.AddThemeFontSizeOverride("font_size", 10);
+		if (FileAccess.FileExists(DefaultFontPath))
+			lbl.AddThemeFontOverride("font", GD.Load<Font>(DefaultFontPath));
 		lbl.AddThemeConstantOverride("shadow_offset_x", 1);
 		lbl.AddThemeConstantOverride("shadow_offset_y", 1);
 		lbl.MouseFilter = Control.MouseFilterEnum.Ignore;

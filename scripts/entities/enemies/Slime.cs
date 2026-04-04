@@ -132,6 +132,7 @@ public partial class Slime : CharacterBody2D
 		Health -= damage;
 		UpdateLifeBar();
 		FlashHit();
+		EffectsManager.Instance?.SpawnImpact(GlobalPosition, new Color(1, 0.2f, 0.2f), 8); // Red sparks
 
 		_isKnockedBack = true;
 		_isAttacking = false;

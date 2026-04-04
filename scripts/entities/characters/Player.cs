@@ -23,6 +23,10 @@ public partial class Player : CharacterBody2D
 	private bool _isKnockedBack;
 	private float _knockbackTimer;
 	private float _attackTimer;
+	private float _dustTimer;
+
+	/// <summary>The ID of the currently equipped tool/weapon in the Weapon slot.</summary>
+	public string EquippedToolId => Equipment.Instance?.GetSlotId(EquipSlot.Weapon);
 
 	/// <summary>Briefly shakes the camera for impact/juice.</summary>
 	public void ShakeCamera(float duration = 0.15f, float intensity = 3.0f)
@@ -130,6 +134,17 @@ public partial class Player : CharacterBody2D
 			PlayAnimation("idle");
 		}
 
+		// Handle Run Particles
+		if (Velocity.Length() > Speed && input != Vector2.Zero)
+		{
+			_dustTimer -= dt;
+			if (_dustTimer <= 0)
+			{
+				EffectsManager.Instance?.SpawnDust(GlobalPosition + new Vector2(0, 8));
+				_dustTimer = 0.15f; // spawn every 150ms while running
+			}
+		}
+
 		MoveAndSlide();
 
 		UpdateSpriteFlip();
@@ -138,9 +153,13 @@ public partial class Player : CharacterBody2D
 	private void Attack()
 	{
 		_isAttacking = true;
-		_attackTimer = AttackCooldown;
 		Velocity = Vector2.Zero;
-		PlayAnimation("attack");
+
+		// Select animation based on tool
+		string prefix = ItemRegistry.GetToolPrefix(EquippedToolId);
+		PlayAnimation(prefix);
+
+		_attackTimer = AttackCooldown;
 		UpdateSpriteFlip();
 		EnableHitBox();
 
@@ -210,7 +229,7 @@ public partial class Player : CharacterBody2D
 		else if (body is Bombshroom bombshroom)
 			bombshroom.TakeDamage(AttackDamage, knockDir);
 		else if (body is ResourceNode resource)
-			resource.TakeDamage(AttackDamage);
+			resource.TakeDamage(AttackDamage, this); // 'this' allows node to check tool requirement
 	}
 
 	private void OnHurtBoxBodyEntered(Node2D body)

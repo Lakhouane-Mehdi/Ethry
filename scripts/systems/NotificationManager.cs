@@ -20,7 +20,10 @@ public partial class NotificationManager : CanvasLayer
 	private static readonly Color ColCraft  = new(0.45f, 0.90f, 0.38f, 1f);
 	private static readonly Color ColHeal   = new(0.42f, 0.88f, 0.52f, 1f);
 	private static readonly Color ColDanger = new(0.92f, 0.30f, 0.28f, 1f);
+	private static readonly Color ColInfo   = new(1.00f, 0.88f, 0.40f, 1f); // Gold-yellow for info
+	private static readonly Color ColWhite  = new(1.00f, 1.00f, 1.00f, 1f);
 
+	[Export] public Font CustomFont;
 	private VBoxContainer _stack;
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────
@@ -29,6 +32,14 @@ public partial class NotificationManager : CanvasLayer
 		Instance    = this;
 		Layer       = 20;
 		ProcessMode = ProcessModeEnum.Always;
+
+		// Load custom font if available
+		if (CustomFont == null)
+		{
+			string fontPath = "res://assets/cute_fantasy_ui/cute_fantasy_ui/font.fnt";
+			if (FileAccess.FileExists(fontPath))
+				CustomFont = GD.Load<Font>(fontPath);
+		}
 
 		// Anchor stack to bottom-left, just above the hearts HUD area
 		_stack = new VBoxContainer();
@@ -57,9 +68,13 @@ public partial class NotificationManager : CanvasLayer
 	public void ShowHeal(int amount)
 		=> Show($"♥  +{amount} HP", ColHeal);
 
-	/// <summary>Show a generic danger / failure message.</summary>
+	/// <summary>Show a generic danger message (Red).</summary>
 	public void ShowWarning(string message)
 		=> Show(message, ColDanger);
+
+	/// <summary>Show a generic info/requirement message (Yellow/Gold).</summary>
+	public void ShowInfo(string message)
+		=> Show(message, ColInfo);
 
 	/// <summary>Low-level: show any string with any colour and optional icon.</summary>
 	public void Show(string message, Color color, Texture2D icon = null)
@@ -96,8 +111,12 @@ public partial class NotificationManager : CanvasLayer
 		var lbl = new Label();
 		lbl.Text = message;
 		lbl.AddThemeColorOverride("font_color", color);
-		lbl.AddThemeColorOverride("font_shadow_color", new Color(0f, 0f, 0f, 0.7f));
-		lbl.AddThemeFontSizeOverride("font_size", 16);
+		lbl.AddThemeColorOverride("font_shadow_color", new Color(0f, 0f, 0f, 0.5f));
+		lbl.AddThemeFontSizeOverride("font_size", 11); // Pixel font size 11 usually crisper
+		
+		if (CustomFont != null)
+			lbl.AddThemeFontOverride("font", CustomFont);
+
 		lbl.AddThemeConstantOverride("shadow_offset_x", 1);
 		lbl.AddThemeConstantOverride("shadow_offset_y", 1);
 		hbox.AddChild(lbl);

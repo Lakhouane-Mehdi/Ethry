@@ -3,6 +3,7 @@ using Godot;
 
 public partial class Inventory : Node
 {
+	[Export] public bool IsPlayerInventory = true;
 	public static Inventory Instance { get; private set; }
 
 	private readonly Dictionary<string, int> _items = new();
@@ -10,7 +11,20 @@ public partial class Inventory : Node
 	[Signal] public delegate void ChangedEventHandler();
 	[Signal] public delegate void ItemAddedEventHandler(string itemId, string itemName, int amount);
 
-	public override void _Ready() => Instance = this;
+	public override void _Ready()
+	{
+		if (IsPlayerInventory)
+			Instance = this;
+	}
+
+	/// <summary>Moves an item from this inventory to another.</summary>
+	public bool TransferTo(Inventory other, string id, int amount = 1)
+	{
+		if (!HasItem(id, amount)) return false;
+		RemoveItem(id, amount);
+		other.AddItem(id, amount);
+		return true;
+	}
 
 	// ── Core API (string ID) ──────────────────────────────────────────────
 	public void AddItem(string id, int amount = 1)

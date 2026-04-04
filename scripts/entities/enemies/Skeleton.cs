@@ -165,8 +165,9 @@ public partial class Skeleton : CharacterBody2D
 		if (_isDead) return;
 
 		Health -= damage;
-		UpdateLifeBar();
 		FlashHit();
+		EffectsManager.Instance?.SpawnImpact(GlobalPosition, new Color(1, 0.2f, 0.2f), 10); // Red sparks
+		UpdateLifeBar();
 
 		_isKnockedBack  = true;
 		_isAttacking    = false;
