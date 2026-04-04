@@ -13,10 +13,9 @@ public struct CraftingRecipe
 /// </summary>
 public static class CraftingRecipes
 {
-	// ── Crafting Table (basic, available from the start) ───────────────────
-	public static readonly CraftingRecipe[] All = new[]
+	// ── Crafting Table (basic tools and gear) ───────────────────────────
+	public static readonly CraftingRecipe[] Table = new[]
 	{
-		// Tools
 		new CraftingRecipe
 		{
 			Result = ItemType.Axe, ResultAmount = 1,
@@ -34,16 +33,14 @@ public static class CraftingRecipes
 		},
 		new CraftingRecipe
 		{
-			Result = ItemType.FishingRod, ResultAmount = 1,
-			Ingredients = new[] { (ItemType.Wood, 3), (ItemType.Fiber, 2) }
-		},
-		new CraftingRecipe
-		{
 			Result = ItemType.WateringCan, ResultAmount = 1,
 			Ingredients = new[] { (ItemType.Stone, 2), (ItemType.Wood, 2) }
 		},
-
-		// Weapons — basic
+		new CraftingRecipe
+		{
+			Result = ItemType.FishingRod, ResultAmount = 1,
+			Ingredients = new[] { (ItemType.Wood, 3), (ItemType.Fiber, 2) }
+		},
 		new CraftingRecipe
 		{
 			Result = ItemType.Spear, ResultAmount = 1,
@@ -54,8 +51,6 @@ public static class CraftingRecipes
 			Result = ItemType.Bow, ResultAmount = 1,
 			Ingredients = new[] { (ItemType.Wood, 3), (ItemType.Fiber, 3) }
 		},
-
-		// Leather armor
 		new CraftingRecipe
 		{
 			Result = ItemType.LeatherHelmet, ResultAmount = 1,
@@ -70,26 +65,7 @@ public static class CraftingRecipes
 		{
 			Result = ItemType.LeatherBoots, ResultAmount = 1,
 			Ingredients = new[] { (ItemType.Leather, 2), (ItemType.Fiber, 1) }
-		},
-
-		// Food
-		new CraftingRecipe
-		{
-			Result = ItemType.Bread, ResultAmount = 2,
-			Ingredients = new[] { (ItemType.Herb, 3), (ItemType.Wood, 1) }
-		},
-		new CraftingRecipe
-		{
-			Result = ItemType.CookedMeat, ResultAmount = 1,
-			Ingredients = new[] { (ItemType.Bone, 1), (ItemType.Coal, 1) }
-		},
-
-		// Potions
-		new CraftingRecipe
-		{
-			Result = ItemType.HealthPotion, ResultAmount = 1,
-			Ingredients = new[] { (ItemType.Herb, 3), (ItemType.Crystal, 1) }
-		},
+		}
 	};
 
 	// ── Furnace (smelting) ────────────────────────────────────────────────
@@ -136,6 +112,29 @@ public static class CraftingRecipes
 			Ingredients = new[] { (ItemType.IronIngot, 2), (ItemType.Leather, 1) }
 		},
 	};
+
+	// ── Cooking (food and potions) ────────────────────────────────────────
+	public static readonly CraftingRecipe[] Cooking = new[]
+	{
+		new CraftingRecipe
+		{
+			Result = ItemType.Bread, ResultAmount = 1,
+			Ingredients = new[] { (ItemType.Wheat, 3) }
+		},
+		new CraftingRecipe
+		{
+			Result = ItemType.CookedMeat, ResultAmount = 1,
+			Ingredients = new[] { (ItemType.RawMeat, 1), (ItemType.Coal, 1) }
+		},
+		new CraftingRecipe
+		{
+			Result = ItemType.HealthPotion, ResultAmount = 1,
+			Ingredients = new[] { (ItemType.Herb, 3), (ItemType.Crystal, 1) }
+		},
+	};
+
+	[System.Obsolete("Use station-specific recipes (Table, Furnace, Anvil, Cooking) instead.")]
+	public static CraftingRecipe[] All => Table; 
 
 	public static bool CanCraft(CraftingRecipe recipe)
 	{

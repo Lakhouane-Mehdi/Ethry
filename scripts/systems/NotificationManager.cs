@@ -25,6 +25,7 @@ public partial class NotificationManager : CanvasLayer
 
 	[Export] public Font CustomFont;
 	private VBoxContainer _stack;
+	private Label _actionPrompt;
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────
 	public override void _Ready()
@@ -49,6 +50,17 @@ public partial class NotificationManager : CanvasLayer
 		_stack.GrowVertical = Control.GrowDirection.Begin; // grows upward
 		_stack.AddThemeConstantOverride("separation", 3);
 		AddChild(_stack);
+
+		// Persistent action prompt label
+		_actionPrompt = new Label { Visible = false };
+		_actionPrompt.SetAnchorsPreset(Control.LayoutPreset.BottomLeft);
+		_actionPrompt.OffsetLeft = 12f;
+		_actionPrompt.OffsetBottom = -56f; // Position it above the stack or in a clear spot
+		_actionPrompt.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.8f));
+		_actionPrompt.AddThemeConstantOverride("outline_size", 4);
+		_actionPrompt.AddThemeFontSizeOverride("font_size", 11);
+		if (CustomFont != null) _actionPrompt.AddThemeFontOverride("font", CustomFont);
+		AddChild(_actionPrompt);
 
 		// Subscribe to inventory pickups
 		// (Inventory is an autoload, guaranteed to exist before this node is ready)
@@ -136,6 +148,22 @@ public partial class NotificationManager : CanvasLayer
 		GetTree().CreateTimer(LifetimeSeconds + 0.1f, false).Timeout += () => {
 			if (IsInstanceValid(anchor)) anchor.QueueFree();
 		};
+	}
+
+	// ── Action Prompt API ──────────────────────────────────────────────────
+	/// <summary>Sets a persistent prompt like "Need Axe" in the corner.</summary>
+	public void SetActionPrompt(string text, Color? color = null)
+	{
+		if (_actionPrompt == null) return;
+		_actionPrompt.Text = text;
+		_actionPrompt.AddThemeColorOverride("font_color", color ?? ColWhite);
+		_actionPrompt.Visible = !string.IsNullOrEmpty(text);
+	}
+
+	/// <summary>Clears the current corner prompt.</summary>
+	public void ClearActionPrompt()
+	{
+		if (_actionPrompt != null) _actionPrompt.Visible = false;
 	}
 
 	// ── Inventory signal ───────────────────────────────────────────────────

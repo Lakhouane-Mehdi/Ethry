@@ -3,6 +3,13 @@
 [ext_resource type="Texture2D" uid="uid://cgbm3p7nu0sgj" path="res://assets/old_sprites/player_merged/player_old/player.png" id="1_cyojo"]
 [ext_resource type="Script" uid="uid://bef2p24pgwup0" path="res://scripts/entities/characters/Player.cs" id="2_script"]
 [ext_resource type="Texture2D" uid="uid://c03ng1501y7kl" path="res://assets/cute_fantasy_free/cute_fantasy_free/player/player_actions.png" id="3_4rl2u"]
+[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="4_fsm"]
+[ext_resource type="Script" path="res://scripts/entities/characters/fsm/PlayerIdleState.cs" id="5_idle"]
+[ext_resource type="Script" path="res://scripts/entities/characters/fsm/PlayerMoveState.cs" id="6_move"]
+[ext_resource type="Script" path="res://scripts/entities/characters/fsm/PlayerAttackState.cs" id="7_attack"]
+[ext_resource type="Script" path="res://scripts/entities/characters/fsm/PlayerHurtState.cs" id="8_hurt"]
+[ext_resource type="Script" path="res://scripts/entities/characters/fsm/PlayerDeathState.cs" id="9_death"]
+[ext_resource type="Script" path="res://scripts/entities/characters/fsm/PlayerTillingState.cs" id="10_tilling"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1kbk7"]
 atlas = ExtResource("1_cyojo")
@@ -639,3 +646,25 @@ shape = SubResource("RectangleShape2D_hurt")
 debug_color = Color(0.26280448, 0.6042343, 0.54395974, 0.41960785)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=720139053]
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("4_fsm")
+InitialState = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("5_idle")
+
+[node name="Move" type="Node" parent="StateMachine"]
+script = ExtResource("6_move")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("7_attack")
+
+[node name="Hurt" type="Node" parent="StateMachine"]
+script = ExtResource("8_hurt")
+
+[node name="Death" type="Node" parent="StateMachine"]
+script = ExtResource("9_death")
+
+[node name="Tilling" type="Node" parent="StateMachine"]
+script = ExtResource("10_tilling")

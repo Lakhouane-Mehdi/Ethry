@@ -7,7 +7,7 @@ public enum ItemType
 	// Resources — raw materials
 	Wood, Stone, Herb, IronOre, GoldOre, Crystal,
 	Coal, Leather, Bone, Fiber,
-	IronIngot, GoldIngot,
+	IronIngot, GoldIngot, Wheat, WheatSeeds, RawMeat,
 
 	// Tools
 	Axe, Pickaxe, Shovel, FishingRod, WateringCan, WoodenTorch,
@@ -93,6 +93,9 @@ public static class ItemRegistry
 		ItemType.Cherry         => "Cherry",
 		ItemType.Peach          => "Peach",
 		ItemType.Pear           => "Pear",
+		ItemType.Wheat          => "Wheat",
+		ItemType.WheatSeeds     => "Wheat Seeds",
+		ItemType.RawMeat        => "Raw Meat",
 		ItemType.HealthPotion   => "Health Potion",
 		_                       => type.ToString()
 	};
@@ -109,7 +112,8 @@ public static class ItemRegistry
 		ItemType.Wood or ItemType.Stone or ItemType.Herb or
 		ItemType.IronOre or ItemType.GoldOre or ItemType.Crystal or
 		ItemType.Coal or ItemType.Leather or ItemType.Bone or ItemType.Fiber or
-		ItemType.IronIngot or ItemType.GoldIngot
+		ItemType.IronIngot or ItemType.GoldIngot or ItemType.Wheat or ItemType.WheatSeeds or
+		ItemType.RawMeat
 			=> ItemCategory.Resource,
 
 		ItemType.Axe or ItemType.Pickaxe or ItemType.Shovel or ItemType.FishingRod or
@@ -155,9 +159,12 @@ public static class ItemRegistry
 		ItemType.Fiber         => "Plant fiber for weaving and binding.",
 		ItemType.IronIngot     => "Refined iron bar. Ready for forging.",
 		ItemType.GoldIngot     => "Pure gold bar. Valuable and strong.",
+		ItemType.Wheat         => "Golden grain ready for baking.",
+		ItemType.WheatSeeds    => "Seeds for growing wheat.",
+		ItemType.RawMeat      => "Fresh meat that should be cooked.",
 		ItemType.Axe           => "Used to chop trees more efficiently.",
 		ItemType.Pickaxe       => "Used to mine rocks more efficiently.",
-		ItemType.Shovel        => "Used to dig and uncover items.",
+		ItemType.Shovel        => "Used to dig and till soil for farming.",
 		ItemType.FishingRod    => "Cast your line and catch fish.",
 		ItemType.WateringCan   => "Waters tilled soil for crops.",
 		ItemType.WoodenTorch   => "A warm light source.",
@@ -236,7 +243,6 @@ public static class ItemRegistry
 		if (idLower.Contains("axe"))     return "axe";
 		if (idLower.Contains("pickaxe")) return "pickaxe";
 		if (idLower.Contains("shovel"))  return "shovel";
-		if (idLower.Contains("hoe"))     return "shovel"; // Map Hoe to Shovel per user request
 		
 		return "attack";
 	}
@@ -383,10 +389,9 @@ public static class ItemRegistry
 		ItemType.Mushroom   => new Rect2(16, 16, 16, 16),  // row 1, col 1
 		ItemType.Cheese     => new Rect2(48, 0,  16, 16),  // row 0, col 3 — cheese/pastry
 		ItemType.Carrot     => new Rect2(96, 0,  16, 16),  // row 0, col 6 — orange item
-		ItemType.Berry      => new Rect2(0,  64, 16, 16),  // row 4, col 0 — red berry
-		ItemType.Cherry     => new Rect2(32, 16, 16, 16),  // row 1, col 2
-		ItemType.Peach      => new Rect2(48, 16, 16, 16),  // row 1, col 3
-		ItemType.Pear       => new Rect2(64, 16, 16, 16),  // row 1, col 4
+		ItemType.Wheat      => new Rect2(0,  112, 16, 16), // crops.png fallback - dummy pos
+		ItemType.WheatSeeds => new Rect2(16, 112, 16, 16),
+		ItemType.RawMeat    => new Rect2(32, 112, 16, 16),
 
 		// ── Potions (other outline, 5×3 grid of 16×16) ────────────────────
 		ItemType.HealthPotion => new Rect2(0, 0, 16, 16),  // row 0, col 0 — red flower/potion

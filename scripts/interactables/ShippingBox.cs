@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Godot;
+using FSM;
 
 /// <summary>
 /// Shipping box interactable — place items to sell them for gold.
-/// Press [E] to open, choose items with arrows, [E] again to ship selected item,
-/// [Esc] to close. Gold is awarded immediately (simplified vs. Stardew's next-day payout).
+/// Refactored to use a StateMachine for its interaction and UI lifecycle.
 /// </summary>
 public partial class ShippingBox : Node2D
 {
@@ -23,87 +23,68 @@ public partial class ShippingBox : Node2D
 	};
 	private const int DefaultPrice = 3; // fallback for unknown items
 
-	// ── Prompt / UI ─────────────────────────────────────────────────────────
 	private bool    _playerNear;
-	private bool    _open;
 	private int     _selectedIdx;
+	private FSM.StateMachine _stateMachine;
 
 	// Baked item list from inventory at open-time
 	private readonly List<(string id, int count, int price)> _listing = new();
 
-	// CanvasLayer UI
-	private CanvasLayer    _layer;
+	// UI Components
 	private Control        _screen;
-	private Label          _titleLabel;
 	private VBoxContainer  _itemList;
 	private Label          _totalLabel;
 	private Label          _hint;
-
-	// Floating prompt
-	private Control        _promptRoot;
 	private Label          _promptLabel;
+	private Control        _promptRoot;
+
+	public bool PlayerNear => _playerNear;
 
 	private static readonly Texture2D FramesTex =
 		GD.Load<Texture2D>("res://assets/cute_fantasy_ui/cute_fantasy_ui/ui_frames.png");
 
-	// ── Lifecycle ──────────────────────────────────────────────────────────
 	public override void _Ready()
 	{
 		BuildPrompt();
 		BuildShopUI();
+		_stateMachine = GetNode<FSM.StateMachine>("StateMachine");
 
 		var area   = new Area2D { CollisionLayer = 0, CollisionMask = 1 };
-		var shape  = new CollisionShape2D();
-		var circle = new CircleShape2D { Radius = 28f };
-		shape.Shape = circle;
+		var shape  = new CollisionShape2D { Shape = new CircleShape2D { Radius = 28f } };
 		area.AddChild(shape);
 		AddChild(area);
-		area.BodyEntered += b => { if (b.IsInGroup("player")) { _playerNear = true;  _promptLabel.Visible = true; } };
-		area.BodyExited  += b => { if (b.IsInGroup("player")) { _playerNear = false; _promptLabel.Visible = false; if (_open) CloseBox(); } };
+
+		area.BodyEntered += b => { if (b.IsInGroup("player")) { _playerNear = true; UpdatePromptVisibility(); } };
+		area.BodyExited  += b => { 
+			if (b.IsInGroup("player")) { 
+				_playerNear = false; 
+				UpdatePromptVisibility();
+				if (_stateMachine.CurrentState is ShippingOpenState)
+					_stateMachine.TransitionTo("Idle");
+			} 
+		};
+	}
+
+	public void UpdatePromptVisibility()
+	{
+		if (_promptLabel != null)
+			_promptLabel.Visible = _playerNear && _stateMachine.CurrentState is ShippingIdleState;
 	}
 
 	public override void _Process(double delta)
 	{
-		_promptRoot.GlobalPosition = GlobalPosition + new Vector2(-60, -38);
+		if (_promptRoot != null)
+			_promptRoot.GlobalPosition = GlobalPosition + new Vector2(-60, -38);
+		
+		_stateMachine?.Update(delta);
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
 	{
-		if (_playerNear && !_open && @event.IsActionPressed("interact"))
-		{
-			OpenBox();
-			GetViewport().SetInputAsHandled();
-			return;
-		}
-		if (!_open) return;
-
-		if (@event.IsActionPressed("ui_cancel") || @event.IsActionPressed("interact"))
-		{
-			CloseBox();
-			GetViewport().SetInputAsHandled();
-			return;
-		}
-		if (@event.IsActionPressed("ui_up"))
-		{
-			_selectedIdx = Mathf.Max(0, _selectedIdx - 1);
-			Refresh();
-			GetViewport().SetInputAsHandled();
-		}
-		else if (@event.IsActionPressed("ui_down"))
-		{
-			_selectedIdx = Mathf.Min(_listing.Count - 1, _selectedIdx + 1);
-			Refresh();
-			GetViewport().SetInputAsHandled();
-		}
-		else if (@event.IsActionPressed("ui_accept"))
-		{
-			ShipSelected();
-			GetViewport().SetInputAsHandled();
-		}
+		_stateMachine?.HandleInput(@event);
 	}
 
-	// ── Box flow ─────────────────────────────────────────────────────────
-	private void OpenBox()
+	public void OpenBox()
 	{
 		_listing.Clear();
 		foreach (var (id, cnt) in Inventory.Instance.Items)
@@ -116,26 +97,32 @@ public partial class ShippingBox : Node2D
 		if (_listing.Count == 0)
 		{
 			NotificationManager.Instance?.ShowWarning("Inventory is empty!");
+			_stateMachine.TransitionTo("Idle");
 			return;
 		}
 
-		_open        = true;
 		_selectedIdx = 0;
 		_screen.Visible = true;
 		_promptLabel.Visible = false;
 		GetTree().Paused = true;
-		Refresh();
+		RefreshItems();
 	}
 
-	private void CloseBox()
+	public void CloseBox()
 	{
-		_open           = false;
 		_screen.Visible = false;
 		GetTree().Paused   = false;
-		if (_playerNear) _promptLabel.Visible = true;
+		UpdatePromptVisibility();
 	}
 
-	private void ShipSelected()
+	public void Scroll(int direction)
+	{
+		if (_listing.Count == 0) return;
+		_selectedIdx = Mathf.Clamp(_selectedIdx + direction, 0, _listing.Count - 1);
+		RefreshItems();
+	}
+
+	public void ShipSelected()
 	{
 		if (_listing.Count == 0 || _selectedIdx >= _listing.Count) return;
 
@@ -152,13 +139,15 @@ public partial class ShippingBox : Node2D
 			new Color(1f, 0.88f, 0.28f));
 
 		_listing.RemoveAt(_selectedIdx);
-		if (_listing.Count == 0) { CloseBox(); return; }
+		if (_listing.Count == 0) { 
+			_stateMachine.TransitionTo("Idle"); 
+			return; 
+		}
 		_selectedIdx = Mathf.Min(_selectedIdx, _listing.Count - 1);
-		Refresh();
+		RefreshItems();
 	}
 
-	// ── UI refresh ─────────────────────────────────────────────────────────
-	private void Refresh()
+	private void RefreshItems()
 	{
 		foreach (Node c in _itemList.GetChildren()) c.QueueFree();
 
@@ -186,7 +175,6 @@ public partial class ShippingBox : Node2D
 		_hint.Text       = "[↑↓] select   [Enter] ship   [Esc] close";
 	}
 
-	// ── Build helpers ──────────────────────────────────────────────────────
 	private void BuildPrompt()
 	{
 		var anchor = new Node2D { TopLevel = true };
@@ -205,17 +193,16 @@ public partial class ShippingBox : Node2D
 
 	private void BuildShopUI()
 	{
-		_layer = new CanvasLayer { Layer = 55 };
-		_layer.ProcessMode = ProcessModeEnum.Always;
-		AddChild(_layer);
+		var layer = new CanvasLayer { Layer = 55 };
+		layer.ProcessMode = ProcessModeEnum.Always;
+		AddChild(layer);
 
 		_screen = new Control();
 		_screen.SetAnchorsPreset(Control.LayoutPreset.FullRect);
 		_screen.ProcessMode = ProcessModeEnum.Always;
 		_screen.Visible = false;
-		_layer.AddChild(_screen);
+		layer.AddChild(_screen);
 
-		// Centre panel
 		var atlas = new AtlasTexture { Atlas = FramesTex, Region = new Rect2(4, 49, 40, 46) };
 		var style = new StyleBoxTexture
 		{
@@ -228,19 +215,19 @@ public partial class ShippingBox : Node2D
 		var panel = new PanelContainer();
 		panel.AddThemeStyleboxOverride("panel", style);
 		panel.SetAnchorsPreset(Control.LayoutPreset.Center);
-		panel.OffsetLeft   = -280; panel.OffsetRight  = 280;
-		panel.OffsetTop    = -200; panel.OffsetBottom = 200;
+		panel.OffsetLeft = -280; panel.OffsetRight = 280;
+		panel.OffsetTop = -200; panel.OffsetBottom = 200;
 		_screen.AddChild(panel);
 
 		var vbox = new VBoxContainer();
 		vbox.AddThemeConstantOverride("separation", 8);
 		panel.AddChild(vbox);
 
-		_titleLabel = new Label { Text = "📦  SHIPPING BOX" };
-		_titleLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.48f, 0.18f));
-		_titleLabel.AddThemeFontSizeOverride("font_size", 16);
-		_titleLabel.HorizontalAlignment = HorizontalAlignment.Center;
-		vbox.AddChild(_titleLabel);
+		var titleLabel = new Label { Text = "📦  SHIPPING BOX" };
+		titleLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.48f, 0.18f));
+		titleLabel.AddThemeFontSizeOverride("font_size", 16);
+		titleLabel.HorizontalAlignment = HorizontalAlignment.Center;
+		vbox.AddChild(titleLabel);
 
 		var sep = new HSeparator();
 		sep.Modulate = new Color(0.55f, 0.38f, 0.18f, 0.5f);

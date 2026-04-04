@@ -1,7 +1,13 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/interactables/FarmPlot.cs" id="1_farm"]
-[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland.png" id="2_soil"]
+[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland_tile.png" id="2_dry"]
+[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland_wet_tile.png" id="3_wet"]
+[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="4_fsm"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotEmptyState.cs" id="5_empty"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotTilledState.cs" id="6_tilled"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotGrowingState.cs" id="7_growing"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotMatureState.cs" id="8_mature"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_plot"]
 size = Vector2(16, 16)
@@ -9,10 +15,26 @@ size = Vector2(16, 16)
 [node name="FarmPlot" type="Node2D"]
 scale = Vector2(4, 4)
 script = ExtResource("1_farm")
+DryTexture = ExtResource("2_dry")
+WetTexture = ExtResource("3_wet")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1
-texture = ExtResource("2_soil")
-region_enabled = true
-region_rect = Rect2(0, 0, 16, 16)
+texture = ExtResource("2_dry")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("4_fsm")
+InitialState = NodePath("Empty")
+
+[node name="Empty" type="Node" parent="StateMachine"]
+script = ExtResource("5_empty")
+
+[node name="Tilled" type="Node" parent="StateMachine"]
+script = ExtResource("6_tilled")
+
+[node name="Growing" type="Node" parent="StateMachine"]
+script = ExtResource("7_growing")
+
+[node name="Mature" type="Node" parent="StateMachine"]
+script = ExtResource("8_mature")
 

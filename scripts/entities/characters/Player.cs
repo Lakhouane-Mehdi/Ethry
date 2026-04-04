@@ -1,5 +1,5 @@
 using Godot;
-
+using FSM;
 public partial class Player : CharacterBody2D
 {
 	[Export] public float Speed = 100f;
@@ -18,12 +18,7 @@ public partial class Player : CharacterBody2D
 	private CollisionShape2D _hitboxShape;
 	private Camera2D _camera;
 	private Vector2 _lastDirection = Vector2.Down;
-	private bool _isAttacking;
-	private bool _isDead;
-	private bool _isKnockedBack;
-	private float _knockbackTimer;
-	private float _attackTimer;
-	private float _dustTimer;
+	private FSM.StateMachine _stateMachine;
 
 	/// <summary>The ID of the currently equipped tool/weapon in the Weapon slot.</summary>
 	public string EquippedToolId => Equipment.Instance?.GetSlotId(EquipSlot.Weapon);
@@ -65,6 +60,9 @@ public partial class Player : CharacterBody2D
 
 		_camera = GetNode<Camera2D>("Camera2D");
 		SetCameraLimits();
+
+		// Initialize State Machine
+		_stateMachine = GetNode<FSM.StateMachine>("StateMachine");
 	}
 
 	private void SetCameraLimits()
@@ -88,93 +86,22 @@ public partial class Player : CharacterBody2D
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (_attackTimer > 0)
-			_attackTimer -= (float)delta;
-
-		if (_isKnockedBack)
-		{
-			_knockbackTimer -= (float)delta;
-			MoveAndSlide();
-			if (_knockbackTimer <= 0)
-			{
-				_isKnockedBack = false;
-				Velocity = Vector2.Zero;
-			}
-			return;
-		}
-
-		if (_isAttacking)
-		{
-			Velocity = Vector2.Zero;
-			return;
-		}
-
-		Vector2 input = Input.GetVector("left", "right", "up", "down");
-		bool isRunning = Input.IsActionPressed("running");
-
-		if (Input.IsActionJustPressed("attack") && _attackTimer <= 0)
-		{
-			Attack();
-			return;
-		}
-
-		float dt = (float)delta;
-
-		if (input != Vector2.Zero)
-		{
-			float targetSpeed = isRunning ? Speed * RunSpeedMultiplier : Speed;
-			Vector2 targetVelocity = input * targetSpeed;
-			Velocity = Velocity.MoveToward(targetVelocity, Acceleration * dt);
-			_lastDirection = input;
-			PlayAnimation("run");
-		}
-		else
-		{
-			Velocity = Velocity.MoveToward(Vector2.Zero, Friction * dt);
-			PlayAnimation("idle");
-		}
-
-		// Handle Run Particles
-		if (Velocity.Length() > Speed && input != Vector2.Zero)
-		{
-			_dustTimer -= dt;
-			if (_dustTimer <= 0)
-			{
-				EffectsManager.Instance?.SpawnDust(GlobalPosition + new Vector2(0, 8));
-				_dustTimer = 0.15f; // spawn every 150ms while running
-			}
-		}
-
-		MoveAndSlide();
-
-		UpdateSpriteFlip();
+		_stateMachine?.PhysicsUpdate(delta);
 	}
 
-	private void Attack()
+	public override void _Process(double delta)
 	{
-		_isAttacking = true;
-		Velocity = Vector2.Zero;
-
-		// Select animation based on tool
-		string prefix = ItemRegistry.GetToolPrefix(EquippedToolId);
-		PlayAnimation(prefix);
-
-		_attackTimer = AttackCooldown;
-		UpdateSpriteFlip();
-		EnableHitBox();
-
-		// Safety timeout: force reset attacking state in case animation signal is missed
-		GetTree().CreateTimer(0.6).Timeout += () =>
-		{
-			if (_isAttacking)
-			{
-				_isAttacking = false;
-				DisableHitBox();
-			}
-		};
+		_stateMachine?.Update(delta);
 	}
 
-	private void PlayAnimation(string action)
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		_stateMachine?.HandleInput(@event);
+	}
+
+	public void SetLastDirection(Vector2 direction) => _lastDirection = direction;
+
+	public void PlayAnimation(string action)
 	{
 		string direction = GetDirectionName();
 		string animName = $"{action}_{direction}";
@@ -190,7 +117,7 @@ public partial class Player : CharacterBody2D
 		return _lastDirection.Y < 0 ? "up" : "down";
 	}
 
-	private void UpdateSpriteFlip()
+	public void UpdateSpriteFlip()
 	{
 		if (_lastDirection.X < 0)
 			_sprite.FlipH = true;
@@ -198,7 +125,7 @@ public partial class Player : CharacterBody2D
 			_sprite.FlipH = false;
 	}
 
-	private void EnableHitBox()
+	public void EnableHitBox()
 	{
 		string dir = GetDirectionName();
 		Vector2 offset = dir switch
@@ -211,7 +138,40 @@ public partial class Player : CharacterBody2D
 		_hitboxShape.SetDeferred(CollisionShape2D.PropertyName.Disabled, false);
 	}
 
-	private void DisableHitBox()
+	/// <summary>Checks if there is a resource or enemy in the attack range.</summary>
+	public bool IsTargetInFront()
+	{
+		if (_hitboxShape == null) return false;
+
+		var space = GetWorld2D().DirectSpaceState;
+		var query = new PhysicsShapeQueryParameters2D();
+		query.Shape = _hitboxShape.Shape;
+		
+		// Determine the future global position of the hitbox
+		string dir = GetDirectionName();
+		Vector2 offset = dir switch
+		{
+			"up" => new Vector2(-0.5f, -7.5f),
+			"down" => new Vector2(0.5f, 7.5f),
+			_ => _sprite.FlipH ? new Vector2(-7.5f, -0.5f) : new Vector2(7.5f, -0.5f)
+		};
+		
+		query.Transform = new Transform2D(0, GlobalPosition + offset * Scale);
+		query.CollideWithAreas = true;
+		query.CollideWithBodies = true;
+		query.CollisionMask = 1; // Default layer where enemies/resources usually live
+
+		var results = space.IntersectShape(query);
+		foreach (var res in results)
+		{
+			var collider = res["collider"].As<Node>();
+			if (collider.GetParent() == this) continue; // Don't hit ourselves
+			return true;
+		}
+		return false;
+	}
+
+	public void DisableHitBox()
 	{
 		_hitboxShape.SetDeferred("disabled", true);
 	}
@@ -231,6 +191,9 @@ public partial class Player : CharacterBody2D
 		else if (body is ResourceNode resource)
 			resource.TakeDamage(AttackDamage, this); // 'this' allows node to check tool requirement
 	}
+
+	public void DisableHurtBox() => _hurtBox.SetDeferred("monitoring", false);
+	public void EnableHurtBox() => _hurtBox.SetDeferred("monitoring", true);
 
 	private void OnHurtBoxBodyEntered(Node2D body)
 	{
@@ -254,7 +217,8 @@ public partial class Player : CharacterBody2D
 
 	public void TakeDamage(int damage, Vector2 knockbackDirection)
 	{
-		if (_isDead || _isKnockedBack)
+		// Don't take damage if already dead or in hitstate
+		if (_stateMachine.CurrentState is PlayerDeathState || _stateMachine.CurrentState is PlayerHurtState)
 			return;
 
 		// Reduce incoming damage by player's current total defence
@@ -262,15 +226,12 @@ public partial class Player : CharacterBody2D
 		int effective = Mathf.Max(1, damage - defence);
 		Health -= effective;
 
-		_sprite.Modulate = new Color(1, 0.3f, 0.3f);
-		GetTree().CreateTimer(0.15).Timeout += () => _sprite.Modulate = Colors.White;
-
-		_isKnockedBack = true;
-		_knockbackTimer = 0.15f;
 		Velocity = knockbackDirection * KnockbackForce;
 
 		if (Health <= 0)
-			Die();
+			_stateMachine.TransitionTo("Death");
+		else
+			_stateMachine.TransitionTo("Hurt");
 	}
 
 	/// <summary>Restores HP, capped at MaxHealth.</summary>
@@ -298,18 +259,7 @@ public partial class Player : CharacterBody2D
 		return true;
 	}
 
-	private void Die()
-	{
-		_isDead = true;
-		Velocity = Vector2.Zero;
-		_hurtBox.SetDeferred("monitoring", false);
-		_hurtBox.SetDeferred("monitorable", false);
-		_hitboxShape.SetDeferred("disabled", true);
-		_sprite.Play("dying");
-		SetPhysicsProcess(false);
-	}
-
-	private void Respawn()
+	public void Respawn()
 	{
 		// Stardew-style: lose some gold, wake up with half health
 		int goldPenalty = Mathf.Min(PlayerData.Instance.Gold, PlayerData.Instance.Gold / 4 + 50);
@@ -317,13 +267,7 @@ public partial class Player : CharacterBody2D
 			PlayerData.Instance.SpendGold(goldPenalty);
 
 		Health = Mathf.Max(MaxHealth / 2, 1);
-		_isDead = false;
-		_isKnockedBack = false;
-		_isAttacking = false;
-		_sprite.Modulate = Colors.White;
-		SetPhysicsProcess(true);
-		_hurtBox.SetDeferred("monitoring", true);
-		_hurtBox.SetDeferred("monitorable", true);
+		EnableHurtBox();
 
 		// Advance to next day
 		DaySystem.Instance?.AdvanceDay();
@@ -333,16 +277,7 @@ public partial class Player : CharacterBody2D
 
 	private void OnAnimationFinished()
 	{
-		if (_isDead)
-		{
-			Respawn();
-			return;
-		}
-
-		if (_isAttacking)
-		{
-			_isAttacking = false;
-			DisableHitBox();
-		}
+		// We can still use this signal if we need to sync with animations,
+		// but the state machine handles most timing now.
 	}
 }

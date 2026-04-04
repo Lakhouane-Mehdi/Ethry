@@ -1,0 +1,27 @@
+using Godot;
+using FSM;
+
+namespace FSM;
+
+/// <summary>
+/// State for when the enemy is dying.
+/// </summary>
+public partial class EnemyDeathState : EnemyState
+{
+    public override void Enter()
+    {
+        _enemy.Velocity = Vector2.Zero;
+        _enemy.PlayAnimation("die");
+        _enemy.DropLoot();
+        
+        // Disable collision to avoid hitting a corpse
+        _enemy.CollisionLayer = 0;
+        _enemy.CollisionMask = 0;
+    }
+
+    public override void Update(double delta)
+    {
+        // Handled by animation finished signal in individual enemy scripts for now,
+        // or we could add a timer here.
+    }
+}

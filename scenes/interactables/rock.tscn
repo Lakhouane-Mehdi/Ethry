@@ -3,6 +3,11 @@
 [ext_resource type="Script" uid="uid://dt71fpxw4oa6g" path="res://scripts/interactables/ResourceNode.cs" id="1_rnode"]
 [ext_resource type="PackedScene" uid="uid://vp28iya1b4qx" path="res://scenes/items/item_pickup.tscn" id="3_pickup"]
 [ext_resource type="Texture2D" uid="uid://xlxbxpebdh3l" path="res://assets/cute_fantasy/cute_fantasy/outdoor decoration/outdoor_decor.png" id="3_sdgva"]
+[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="4_fsm"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/ResourceHealthyState.cs" id="5_healthy"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/ResourceHarvestableState.cs" id="6_harvest"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/ResourceRegrowingState.cs" id="7_regrow"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/ResourceStumpState.cs" id="8_stump"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tp18n"]
 atlas = ExtResource("3_sdgva")
@@ -38,4 +43,20 @@ shape = SubResource("RectangleShape2D_trunk")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=383545639]
 position = Vector2(0, -6)
 shape = SubResource("RectangleShape2D_hurt")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("4_fsm")
+InitialState = NodePath("Healthy")
+
+[node name="Healthy" type="Node" parent="StateMachine"]
+script = ExtResource("5_healthy")
+
+[node name="Harvestable" type="Node" parent="StateMachine"]
+script = ExtResource("6_harvest")
+
+[node name="Regrowing" type="Node" parent="StateMachine"]
+script = ExtResource("7_regrow")
+
+[node name="Stump" type="Node" parent="StateMachine"]
+script = ExtResource("8_stump")
 

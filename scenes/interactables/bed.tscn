@@ -2,6 +2,10 @@
 
 [ext_resource type="Script" uid="uid://beiwxk7uqbqlc" path="res://scripts/interactables/Bed.cs" id="1_bed"]
 [ext_resource type="Texture2D" uid="uid://urlg75ds5oi0" path="res://assets/cute_fantasy/cute_fantasy/house/buildings/House_Decor/Beds.png" id="2_l7pu3"]
+[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="3_sm"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/BedIdleState.cs" id="4_idle"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/BedConfirmingState.cs" id="5_confirm"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/BedSleepingState.cs" id="6_sleep"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bed"]
 size = Vector2(18, 14)
@@ -20,4 +24,17 @@ region_rect = Rect2(0.7513809, 32.818542, 25.3987, 31.446136)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=702308077]
 shape = SubResource("RectangleShape2D_bed")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("3_sm")
+InitialState = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("4_idle")
+
+[node name="Confirming" type="Node" parent="StateMachine"]
+script = ExtResource("5_confirm")
+
+[node name="Sleeping" type="Node" parent="StateMachine"]
+script = ExtResource("6_sleep")
 

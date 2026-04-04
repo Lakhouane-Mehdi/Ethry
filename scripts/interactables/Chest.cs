@@ -1,12 +1,12 @@
 using Godot;
+using FSM;
 
 /// <summary>
 /// Interactable loot chest with 4 tiers.
-/// Opens on interact, spawns random items, then stays open.
+/// Refactored to use a StateMachine for its interaction and animation lifecycle.
 /// </summary>
 public partial class Chest : Area2D
 {
-	/// <summary>0 = Wood, 1 = Metal, 2 = Gold, 3 = Jeweled</summary>
 	[Export] public int Tier = 0;
 
 	private bool _playerInRange;
@@ -15,6 +15,10 @@ public partial class Chest : Area2D
 	private Label _prompt;
 	private AnimatedSprite2D _sprite;
 	private Inventory _inventory;
+	private FSM.StateMachine _stateMachine;
+
+	public bool PlayerInRange => _playerInRange;
+	public bool InitialLootGenerated => _initialLootGenerated;
 
 	// Loot tables per tier — (item, minAmount, maxAmount, weight)
 	private static readonly (ItemType, int, int, int)[][] LootTables = new[]
@@ -70,15 +74,15 @@ public partial class Chest : Area2D
 		BodyExited  += OnBodyExited;
 
 		_sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-		_sprite.AnimationFinished += OnAnimationFinished;
 		_sprite.Play("closed");
+
+		_stateMachine = GetNode<FSM.StateMachine>("StateMachine");
 
 		// Initialize private inventory for this chest
 		_inventory = new Inventory { IsPlayerInventory = false };
 		AddChild(_inventory);
 
 		_prompt = new Label();
-		_prompt.Text     = "Press E to Open";
 		_prompt.Position = new Vector2(-40, -50);
 		_prompt.AddThemeColorOverride("font_color", Colors.White);
 		_prompt.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.8f));
@@ -89,40 +93,37 @@ public partial class Chest : Area2D
 		AddChild(_prompt);
 	}
 
+	public void UpdatePrompt()
+	{
+		if (_prompt == null) return;
+		bool isOpened = _stateMachine.CurrentState is ChestOpenState;
+		_prompt.Text = isOpened ? "Press E for Storage" : "Press E to Open";
+		_prompt.Visible = _playerInRange;
+	}
+
+	public void HidePrompt()
+	{
+		if (_prompt != null) _prompt.Visible = false;
+	}
+
+	public void PlayAnimation(string anim) => _sprite?.Play(anim);
+
+	public bool IsAnimationFinished(string anim)
+	{
+		return _sprite != null && _sprite.Animation == anim && _sprite.Frame >= _sprite.SpriteFrames.GetFrameCount(anim) - 1;
+	}
+
 	public override void _Process(double delta)
 	{
-		if (!_playerInRange) return;
-
-		if (Input.IsActionJustPressed("interact"))
-		{
-			if (!_opened)
-				Open();
-			else
-				OpenStorageUI();
-		}
+		_stateMachine?.Update(delta);
 	}
 
-	private void Open()
+	public override void _UnhandledInput(InputEvent @event)
 	{
-		_opened         = true;
-		_prompt.Visible = false;
-		_sprite.Play("open");
+		_stateMachine?.HandleInput(@event);
 	}
 
-	private void OnAnimationFinished()
-	{
-		// Only open the UI if the animation finished at the end (Lid is Open)
-		// Frame 0 is the start (Closed), Frame 5 is the end (Open)
-		if (_sprite.Animation == "open" && _sprite.Frame > 0)
-		{
-			if (!_initialLootGenerated)
-				GenerateInitialLoot();
-			
-			OpenStorageUI();
-		}
-	}
-
-	private void OpenStorageUI()
+	public void OpenStorageUI()
 	{
 		string chestName = Tier switch {
 			1 => "Metal Chest",
@@ -130,17 +131,21 @@ public partial class Chest : Area2D
 			3 => "Jeweled Chest",
 			_ => "Wooden Chest"
 		};
-		// Using dynamic Call to avoid compiler name identification issues with Autoload Scenes
-		GetTree().Root.GetNode("StorageUI").Call("Open", _inventory, chestName, this);
+		var storageUI = GetTree().Root.GetNodeOrNull("StorageUI");
+		if (storageUI != null)
+			storageUI.Call("Open", _inventory, chestName, this);
+		else
+			GD.PrintErr("Chest: StorageUI not found in root.");
 	}
 
-	/// <summary>Called by StorageUI when closing to snap the lid shut.</summary>
+	/// <summary>Called by StorageUI when closing.</summary>
 	public void CloseStorage()
 	{
 		_sprite.PlayBackwards("open");
+		_stateMachine.TransitionTo("Closed");
 	}
 
-	private void GenerateInitialLoot()
+	public void GenerateInitialLoot()
 	{
 		_initialLootGenerated = true;
 		int tier  = Mathf.Clamp(Tier, 0, LootTables.Length - 1);
@@ -178,14 +183,13 @@ public partial class Chest : Area2D
 	{
 		if (body is not CharacterBody2D || !body.IsInGroup("player")) return;
 		_playerInRange = true;
-		_prompt.Text = _opened ? "Press E for Storage" : "Press E to Open";
-		_prompt.Visible = true;
+		_stateMachine?.CurrentState?.Enter(); // Update prompt visibility via state
 	}
 
 	private void OnBodyExited(Node2D body)
 	{
 		if (body is not CharacterBody2D || !body.IsInGroup("player")) return;
 		_playerInRange  = false;
-		_prompt.Visible = false;
+		HidePrompt();
 	}
 }

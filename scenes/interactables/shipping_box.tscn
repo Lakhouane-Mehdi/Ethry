@@ -2,6 +2,9 @@
 
 [ext_resource type="Script" uid="uid://b8ehvw6572s6j" path="res://scripts/interactables/ShippingBox.cs" id="1_ship"]
 [ext_resource type="Texture2D" uid="uid://dw6rivl6tmc73" path="res://assets/cute_fantasy/cute_fantasy/outdoor decoration/camp_decor.png" id="2_tex"]
+[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="3_sm"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/ShippingIdleState.cs" id="4_idle"]
+[ext_resource type="Script" path="res://scripts/interactables/fsm/ShippingOpenState.cs" id="5_open"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_box"]
 size = Vector2(14, 12)
@@ -21,4 +24,14 @@ position = Vector2(0, 2)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=679194768]
 shape = SubResource("RectangleShape2D_box")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("3_sm")
+InitialState = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("4_idle")
+
+[node name="Open" type="Node" parent="StateMachine"]
+script = ExtResource("5_open")
 
