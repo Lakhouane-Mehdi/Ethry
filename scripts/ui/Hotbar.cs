@@ -38,16 +38,18 @@ public partial class Hotbar : CanvasLayer
 		ProcessMode = ProcessModeEnum.Always;
 
 		_icons     = new TextureRect[SlotCount];
+		_keyLabels = new Label[SlotCount];
 		_counts    = new Label[SlotCount];
 		_selectors = new TextureRect[SlotCount];
-		_keyLabels = new Label[SlotCount];
-
+	
 		int totalW = SlotCount * SlotW + (SlotCount - 1) * Gap;
 
 		// Root Control — bottom-centre, just above the HUD hearts
 		var root = new Control();
-		root.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
-		// Centre the bar horizontally
+		root.AnchorLeft   = 0.5f;
+		root.AnchorRight  = 0.5f;
+		root.AnchorTop    = 1.0f;
+		root.AnchorBottom = 1.0f;
 		root.OffsetLeft   = -totalW / 2f;
 		root.OffsetRight  =  totalW / 2f;
 		root.OffsetBottom = -54f;   // 54px from bottom (above the heart HUD)
@@ -114,7 +116,7 @@ public partial class Hotbar : CanvasLayer
 			root.AddChild(sel);
 			_selectors[i] = sel;
 
-			// Key number label (1–5)
+			// Key number label (1–5) — hidden by default
 			var keyLbl = new Label();
 			keyLbl.Text     = (i + 1).ToString();
 			keyLbl.Position = new Vector2(x + 2, 1);
@@ -125,6 +127,7 @@ public partial class Hotbar : CanvasLayer
 			keyLbl.AddThemeConstantOverride("shadow_offset_x", 1);
 			keyLbl.AddThemeConstantOverride("shadow_offset_y", 1);
 			keyLbl.MouseFilter = Control.MouseFilterEnum.Ignore;
+			keyLbl.Visible = false;
 			root.AddChild(keyLbl);
 			_keyLabels[i] = keyLbl;
 		}
@@ -204,7 +207,10 @@ public partial class Hotbar : CanvasLayer
 		{
 			var player = GetTree().GetFirstNodeInGroup("player") as Player;
 			if (player != null && player.UseConsumable(id))
+			{
+				AudioManager.Instance?.PlaySfx("eat");
 				NotificationManager.Instance?.ShowHeal(data.HealAmount);
+			}
 		}
 	}
 

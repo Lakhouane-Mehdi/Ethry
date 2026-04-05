@@ -8,6 +8,7 @@ namespace FSM;
 public partial class PlayerMoveState : PlayerState
 {
 	private float _dustTimer;
+	private float _footstepTimer;
 
 	public override void Enter()
 	{
@@ -21,7 +22,7 @@ public partial class PlayerMoveState : PlayerState
 			string equipped = Equipment.Instance?.GetSlotId(EquipSlot.Weapon);
 			bool isShovel = equipped != null && equipped.ToLower().Contains("shovel");
 			
-			if (isShovel && !_player.IsTargetInFront())
+			if (isShovel)
 				GetParent<StateMachine>().TransitionTo("Tilling");
 			else
 				GetParent<StateMachine>().TransitionTo("Attack");
@@ -45,13 +46,21 @@ public partial class PlayerMoveState : PlayerState
 		_player.UpdateSpriteFlip();
 		_player.MoveAndSlide();
 
+		// Footstep sounds
+		_footstepTimer -= (float)delta;
+		if (_footstepTimer <= 0)
+		{
+			AudioManager.Instance?.PlaySfx("player_footstep", 0.05f);
+			_footstepTimer = isRunning ? 0.22f : 0.32f;
+		}
+
 		// Dust logic
 		if (_player.Velocity.Length() > _player.Speed)
 		{
 			_dustTimer -= (float)delta;
 			if (_dustTimer <= 0)
 			{
-				EffectsManager.Instance?.SpawnDust(_player.GlobalPosition + new Vector2(0, 8));
+				if (GodotObject.IsInstanceValid(EffectsManager.Instance)) EffectsManager.Instance.SpawnDust(_player.GlobalPosition + new Vector2(0, 8));
 				_dustTimer = 0.15f;
 			}
 		}

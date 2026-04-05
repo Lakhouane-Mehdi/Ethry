@@ -7,7 +7,7 @@ public partial class Exit : Area2D
 
 	public override void _Ready()
 	{
-		Monitoring = true;
+		SetDeferred("monitoring", true);
 		CollisionLayer = 0;
 		CollisionMask = 1;
 		BodyEntered += OnBodyEntered;

@@ -13,5 +13,6 @@ public partial class BedSleepingState : BedState
     {
         _node.HideConfirmation();
         _node.PerformSleepSequence();
+        AudioManager.Instance?.PlaySfx("sleep");
     }
 }

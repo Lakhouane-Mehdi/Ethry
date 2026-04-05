@@ -1,40 +1,44 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b4aohiqo1rq7i"]
 
-[ext_resource type="Script" path="res://scripts/interactables/FarmPlot.cs" id="1_farm"]
-[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland_tile.png" id="2_dry"]
-[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland_wet_tile.png" id="3_wet"]
-[ext_resource type="Script" path="res://scripts/systems/fsm/StateMachine.cs" id="4_fsm"]
-[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotEmptyState.cs" id="5_empty"]
-[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotTilledState.cs" id="6_tilled"]
-[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotGrowingState.cs" id="7_growing"]
-[ext_resource type="Script" path="res://scripts/interactables/fsm/PlotMatureState.cs" id="8_mature"]
+[ext_resource type="Script" uid="uid://bkcdpycgdwavm" path="res://scripts/interactables/FarmPlot.cs" id="1_farm"]
+[ext_resource type="Texture2D" uid="uid://cjyj4pmesfr8c" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland_tile.png" id="2_dry_atlas"]
+[ext_resource type="Texture2D" uid="uid://2exsfe88p8ke" path="res://assets/cute_fantasy/cute_fantasy/tiles/farmland/farmland_wet_tile.png" id="3_wet_atlas"]
+[ext_resource type="Script" uid="uid://cbo3wbnjt2gck" path="res://scripts/systems/fsm/StateMachine.cs" id="4_fsm"]
+[ext_resource type="Script" uid="uid://bjlqkm4awpkjr" path="res://scripts/interactables/fsm/PlotEmptyState.cs" id="5_empty"]
+[ext_resource type="Script" uid="uid://me484taucj24" path="res://scripts/interactables/fsm/PlotTilledState.cs" id="6_tilled"]
+[ext_resource type="Script" uid="uid://ckdv728ovvimk" path="res://scripts/interactables/fsm/PlotGrowingState.cs" id="7_growing"]
+[ext_resource type="Script" uid="uid://bgs1n7iwotwdu" path="res://scripts/interactables/fsm/PlotMatureState.cs" id="8_mature"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_plot"]
-size = Vector2(16, 16)
+[sub_resource type="AtlasTexture" id="AtlasTexture_dry"]
+atlas = ExtResource("2_dry_atlas")
+region = Rect2(96, 0, 16, 16)
 
-[node name="FarmPlot" type="Node2D"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_wet"]
+atlas = ExtResource("3_wet_atlas")
+region = Rect2(96, 0, 16, 16)
+
+[node name="FarmPlot" type="Node2D" unique_id=1126771247]
 scale = Vector2(4, 4)
 script = ExtResource("1_farm")
-DryTexture = ExtResource("2_dry")
-WetTexture = ExtResource("3_wet")
+DryTexture = SubResource("AtlasTexture_dry")
+WetTexture = SubResource("AtlasTexture_wet")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2009489205]
 texture_filter = 1
-texture = ExtResource("2_dry")
+texture = SubResource("AtlasTexture_dry")
+offset = Vector2(0, 8)
 
-[node name="StateMachine" type="Node" parent="."]
+[node name="StateMachine" type="Node" parent="." unique_id=1557228660]
 script = ExtResource("4_fsm")
-InitialState = NodePath("Empty")
 
-[node name="Empty" type="Node" parent="StateMachine"]
+[node name="Empty" type="Node" parent="StateMachine" unique_id=1925851430]
 script = ExtResource("5_empty")
 
-[node name="Tilled" type="Node" parent="StateMachine"]
+[node name="Tilled" type="Node" parent="StateMachine" unique_id=1028498737]
 script = ExtResource("6_tilled")
 
-[node name="Growing" type="Node" parent="StateMachine"]
+[node name="Growing" type="Node" parent="StateMachine" unique_id=549493912]
 script = ExtResource("7_growing")
 
-[node name="Mature" type="Node" parent="StateMachine"]
+[node name="Mature" type="Node" parent="StateMachine" unique_id=1589185082]
 script = ExtResource("8_mature")
-

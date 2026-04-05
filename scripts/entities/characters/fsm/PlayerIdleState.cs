@@ -20,7 +20,7 @@ public partial class PlayerIdleState : PlayerState
 			string equipped = Equipment.Instance?.GetSlotId(EquipSlot.Weapon);
 			bool isShovel = equipped != null && equipped.ToLower().Contains("shovel");
 			
-			if (isShovel && !_player.IsTargetInFront())
+			if (isShovel)
 				GetParent<StateMachine>().TransitionTo("Tilling");
 			else
 				GetParent<StateMachine>().TransitionTo("Attack");

@@ -13,6 +13,7 @@ public partial class EnemyDeathState : EnemyState
         _enemy.Velocity = Vector2.Zero;
         _enemy.PlayAnimation("die");
         _enemy.DropLoot();
+        AudioManager.Instance?.PlaySfx("enemy_death");
         
         // Disable collision to avoid hitting a corpse
         _enemy.CollisionLayer = 0;

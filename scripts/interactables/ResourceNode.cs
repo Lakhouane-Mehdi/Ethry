@@ -107,10 +107,12 @@ public partial class ResourceNode : Node2D
 	private void SetupInteraction()
 	{
 		var area = new Area2D { CollisionLayer = 0, CollisionMask = 1 };
-		var shape = new CollisionShape2D { Shape = new CircleShape2D { Radius = 32f } };
+		// Counter parent scale so the interaction radius is consistent in world space
+		float parentScale = Scale.X > 0 ? Scale.X : 1f;
+		var shape = new CollisionShape2D { Shape = new CircleShape2D { Radius = 48f / parentScale } };
 		area.AddChild(shape);
 		AddChild(area);
-		
+
 		area.BodyEntered += OnInteractionBodyEntered;
 		area.BodyExited  += OnInteractionBodyExited;
 	}
@@ -127,16 +129,11 @@ public partial class ResourceNode : Node2D
 		if (string.IsNullOrEmpty(RequiredTool)) return;
 
 		string equipped = Equipment.Instance?.GetSlotId(EquipSlot.Weapon) ?? "";
-		string reqLower = RequiredTool.ToLower();
-		
-		if (!equipped.ToLower().Contains(reqLower))
+		if (!equipped.ToLower().Contains(RequiredTool.ToLower()))
 		{
-			string itemName = "item";
-			if (Tree != null && !string.IsNullOrEmpty(Tree.DisplayName))
-				itemName = Tree.DisplayName;
-			else
-				itemName = DropType.ToString();
-
+			string itemName = Tree is { DisplayName: not null and not "" }
+				? Tree.DisplayName
+				: DropType.ToString();
 			NotificationManager.Instance?.ShowInfo($"Need {RequiredTool} to harvest {itemName}");
 		}
 	}
@@ -212,6 +209,7 @@ public partial class ResourceNode : Node2D
 		{
 			int amount = (int)GD.RandRange(Tree.FruitDropMin, Tree.FruitDropMax + 1);
 			Inventory.Instance.AddItem(Tree.FruitDropId, amount);
+			AudioManager.Instance?.PlaySfx("harvest");
 			HasFruit = false;
 			DaysSinceHarvest = 0;
 			_stateMachine.TransitionTo("Regrowing");
@@ -279,13 +277,21 @@ public partial class ResourceNode : Node2D
 		Health -= damage;
 		FlashHit();
 		attacker?.ShakeCamera(0.12f, Tree != null ? 3.5f : 2.0f);
+
+		string sfx = RequiredTool?.ToLower() switch
+		{
+			"axe" => "chop_wood",
+			"pickaxe" => "mine_rock",
+			_ => "hit_enemy"
+		};
+		AudioManager.Instance?.PlaySfx(sfx);
 		
 		Color pColor = DropType switch
 		{
 			ItemType.Stone or ItemType.Crystal => new Color(0.5f, 0.5f, 0.5f),
 			_ => new Color(0.45f, 0.3f, 0.15f)
 		};
-		EffectsManager.Instance?.SpawnImpact(GlobalPosition, pColor, 6);
+		if (GodotObject.IsInstanceValid(EffectsManager.Instance)) EffectsManager.Instance.SpawnImpact(GlobalPosition, pColor, 6);
 	}
 
 	public void ChopDown()

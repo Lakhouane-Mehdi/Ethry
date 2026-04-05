@@ -26,10 +26,15 @@ public partial class ShopUI : CanvasLayer
 	// ── Public open/close ──────────────────────────────────────────────────
 	public bool IsOpen => _open;
 
+	[Export] public bool CanSell = true;
+	[Export] public float SellPriceRatio = 0.5f; // Sell at 50% of buy price
+
 	// ── State ──────────────────────────────────────────────────────────────
 	private bool _open;
+	private bool _sellMode;
 	private int  _selectedIdx;
 	private readonly List<ShopEntry> _stock = new();
+	private readonly List<(string id, int count)> _sellableItems = new();
 
 	// ── UI refs ────────────────────────────────────────────────────────────
 	private Control        _screen;
@@ -47,7 +52,45 @@ public partial class ShopUI : CanvasLayer
 	{
 		Layer       = 55;
 		ProcessMode = ProcessModeEnum.Always;
+
+		// Auto-populate stock if none configured in editor
+		if (Stock == null || Stock.Length == 0)
+			Stock = GetDefaultStock();
+
 		BuildUI();
+	}
+
+	private ShopEntry[] GetDefaultStock()
+	{
+		string shopName = ShopTitle?.ToLower() ?? "";
+		if (shopName.Contains("katy") || shopName.Contains("general"))
+		{
+			return new[]
+			{
+				new ShopEntry { ItemId = "Wood",       Price = 5,  Stock = -1 },
+				new ShopEntry { ItemId = "Stone",      Price = 8,  Stock = -1 },
+				new ShopEntry { ItemId = "Fiber",      Price = 4,  Stock = -1 },
+				new ShopEntry { ItemId = "Coal",       Price = 10, Stock = -1 },
+				new ShopEntry { ItemId = "Herb",       Price = 12, Stock = -1 },
+				new ShopEntry { ItemId = "WheatSeeds", Price = 6,  Stock = -1 },
+			};
+		}
+		if (shopName.Contains("mike") || shopName.Contains("smith"))
+		{
+			return new[]
+			{
+				new ShopEntry { ItemId = "IronOre",     Price = 15,  Stock = -1 },
+				new ShopEntry { ItemId = "GoldOre",     Price = 30,  Stock = -1 },
+				new ShopEntry { ItemId = "Coal",        Price = 10,  Stock = -1 },
+				new ShopEntry { ItemId = "IronIngot",   Price = 40,  Stock = -1 },
+				new ShopEntry { ItemId = "IronSword",   Price = 120, Stock = 3 },
+				new ShopEntry { ItemId = "IronHelmet",  Price = 80,  Stock = 2 },
+				new ShopEntry { ItemId = "IronArmor",   Price = 100, Stock = 2 },
+				new ShopEntry { ItemId = "IronBoots",   Price = 70,  Stock = 2 },
+				new ShopEntry { ItemId = "Pickaxe",     Price = 50,  Stock = 3 },
+			};
+		}
+		return System.Array.Empty<ShopEntry>();
 	}
 
 	public override void _UnhandledInput(InputEvent @event)
@@ -60,21 +103,38 @@ public partial class ShopUI : CanvasLayer
 			GetViewport().SetInputAsHandled();
 			return;
 		}
+
+		// Tab to switch Buy/Sell
+		if (CanSell && @event is InputEventKey key && key.Pressed && !key.Echo && key.PhysicalKeycode == Key.Tab)
+		{
+			_sellMode = !_sellMode;
+			_selectedIdx = 0;
+			if (_sellMode) RefreshSellList();
+			AudioManager.Instance?.PlaySfxFlat("ui_click");
+			Refresh();
+			GetViewport().SetInputAsHandled();
+			return;
+		}
+
+		int maxIdx = _sellMode ? _sellableItems.Count - 1 : _stock.Count - 1;
+
 		if (@event.IsActionPressed("ui_up"))
 		{
 			_selectedIdx = Mathf.Max(0, _selectedIdx - 1);
+			AudioManager.Instance?.PlaySfxFlat("ui_navigate");
 			Refresh();
 			GetViewport().SetInputAsHandled();
 		}
 		else if (@event.IsActionPressed("ui_down"))
 		{
-			_selectedIdx = Mathf.Min(_stock.Count - 1, _selectedIdx + 1);
+			_selectedIdx = Mathf.Min(maxIdx, _selectedIdx + 1);
+			AudioManager.Instance?.PlaySfxFlat("ui_navigate");
 			Refresh();
 			GetViewport().SetInputAsHandled();
 		}
 		else if (@event.IsActionPressed("ui_accept"))
 		{
-			Buy();
+			if (_sellMode) Sell(); else Buy();
 			GetViewport().SetInputAsHandled();
 		}
 	}
@@ -95,9 +155,11 @@ public partial class ShopUI : CanvasLayer
 		}
 
 		_open = true;
+		_sellMode = false;
 		_selectedIdx = 0;
 		_screen.Visible = true;
 		GetTree().Paused = true;
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 		Refresh();
 	}
 
@@ -106,6 +168,7 @@ public partial class ShopUI : CanvasLayer
 		_open           = false;
 		_screen.Visible = false;
 		GetTree().Paused = false;
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 	}
 
 	// ── Buy logic ──────────────────────────────────────────────────────────
@@ -118,6 +181,7 @@ public partial class ShopUI : CanvasLayer
 
 		if (!PlayerData.Instance.SpendGold(entry.Price)) return;
 
+		AudioManager.Instance?.PlaySfx("buy_item");
 		Inventory.Instance.AddItem(entry.ItemId, 1);
 
 		if (entry.Stock > 0)
@@ -136,41 +200,139 @@ public partial class ShopUI : CanvasLayer
 		Refresh();
 	}
 
+	// ── Sell logic ─────────────────────────────────────────────────────────
+	private void RefreshSellList()
+	{
+		_sellableItems.Clear();
+		foreach (var (id, cnt) in Inventory.Instance.Items)
+		{
+			if (cnt <= 0) continue;
+			var data = ItemDatabase.Instance?.Get(id);
+			if (data == null) continue;
+			// Don't allow selling equipped items or tools that are currently equipped
+			_sellableItems.Add((id, cnt));
+		}
+	}
+
+	private int GetSellPrice(string itemId)
+	{
+		// Check if the shop buys this item at a known price
+		if (Stock != null)
+			foreach (var e in Stock)
+				if (e.ItemId == itemId)
+					return Mathf.Max(1, (int)(e.Price * SellPriceRatio));
+
+		// Default sell price based on category
+		var data = ItemDatabase.Instance?.Get(itemId);
+		if (data == null) return 1;
+		return data.Category switch
+		{
+			ItemCategory.Tool or ItemCategory.Weapon => Mathf.Max(1, (int)(15 * SellPriceRatio)),
+			ItemCategory.Armor => Mathf.Max(1, (int)(12 * SellPriceRatio)),
+			ItemCategory.Food or ItemCategory.Potion => Mathf.Max(1, (int)(8 * SellPriceRatio)),
+			_ => Mathf.Max(1, (int)(5 * SellPriceRatio)) // Resources
+		};
+	}
+
+	private void Sell()
+	{
+		if (_selectedIdx >= _sellableItems.Count) return;
+		var (id, cnt) = _sellableItems[_selectedIdx];
+		var data = ItemDatabase.Instance?.Get(id);
+		string name = data?.DisplayName ?? id;
+		int price = GetSellPrice(id);
+
+		Inventory.Instance.RemoveItem(id, 1);
+		PlayerData.Instance.AddGold(price);
+		AudioManager.Instance?.PlaySfx("sell_item");
+		NotificationManager.Instance?.Show(
+			$"Sold {name}  +{price}g", new Color(0.45f, 0.88f, 0.55f));
+
+		RefreshSellList();
+		if (_sellableItems.Count == 0) { _sellMode = false; }
+		_selectedIdx = Mathf.Min(_selectedIdx, Mathf.Max(0, (_sellMode ? _sellableItems.Count : _stock.Count) - 1));
+		Refresh();
+	}
+
 	// ── UI refresh ─────────────────────────────────────────────────────────
 	private void Refresh()
 	{
-		_goldLabel.Text = $"Gold: {PlayerData.Instance.Gold} g";
+		_goldLabel.Text = $"{PlayerData.Instance.Gold} g";
+		_titleLabel.Text = _sellMode ? $"{ShopTitle}  —  SELL" : ShopTitle;
 
 		foreach (Node c in _list.GetChildren()) c.QueueFree();
 
-		for (int i = 0; i < _stock.Count; i++)
+		if (_sellMode)
 		{
-			var    entry = _stock[i];
-			var    data  = ItemDatabase.Instance?.Get(entry.ItemId);
-			string name  = data?.DisplayName ?? entry.ItemId;
-			string stock = entry.Stock < 0 ? "∞" : entry.Stock.ToString();
-			bool   sel   = i == _selectedIdx;
-			bool   canAfford = PlayerData.Instance.Gold >= entry.Price;
+			if (_sellableItems.Count == 0)
+			{
+				var empty = new Label { Text = "Nothing to sell." };
+				empty.AddThemeColorOverride("font_color", new Color(0.5f, 0.35f, 0.2f, 0.7f));
+				empty.AddThemeFontSizeOverride("font_size", 12);
+				_list.AddChild(empty);
+				_descLabel.Text = "";
+			}
+			else
+			{
+				for (int i = 0; i < _sellableItems.Count; i++)
+				{
+					var (id, cnt) = _sellableItems[i];
+					var data = ItemDatabase.Instance?.Get(id);
+					string name = data?.DisplayName ?? id;
+					int price = GetSellPrice(id);
+					bool sel = i == _selectedIdx;
 
-			var row = new Label();
-			row.Text = sel
-				? $"▶  {name}   {entry.Price}g   [{stock}]"
-				: $"    {name}   {entry.Price}g   [{stock}]";
+					var row = new Label();
+					row.Text = sel
+						? $"▶  {name} x{cnt}   +{price}g"
+						: $"    {name} x{cnt}   +{price}g";
+					row.AddThemeColorOverride("font_color", sel
+						? new Color(0.45f, 0.88f, 0.55f)
+						: new Color(0.32f, 0.18f, 0.06f));
+					row.AddThemeFontSizeOverride("font_size", 12);
+					_list.AddChild(row);
+				}
 
-			Color col = sel
-				? (canAfford ? new Color(1f, 0.88f, 0.28f) : new Color(0.85f, 0.32f, 0.28f))
-				: (canAfford ? new Color(0.32f, 0.18f, 0.06f) : new Color(0.5f, 0.35f, 0.28f, 0.7f));
-			row.AddThemeColorOverride("font_color", col);
-			row.AddThemeFontSizeOverride("font_size", 12);
-			_list.AddChild(row);
+				if (_selectedIdx < _sellableItems.Count)
+				{
+					var data = ItemDatabase.Instance?.Get(_sellableItems[_selectedIdx].id);
+					_descLabel.Text = data?.Description ?? "";
+				}
+			}
+		}
+		else
+		{
+			for (int i = 0; i < _stock.Count; i++)
+			{
+				var entry = _stock[i];
+				var data = ItemDatabase.Instance?.Get(entry.ItemId);
+				string name = data?.DisplayName ?? entry.ItemId;
+				string stock = entry.Stock < 0 ? "∞" : entry.Stock.ToString();
+				bool sel = i == _selectedIdx;
+				bool canAfford = PlayerData.Instance.Gold >= entry.Price;
+
+				var row = new Label();
+				row.Text = sel
+					? $"▶  {name}   {entry.Price}g   [{stock}]"
+					: $"    {name}   {entry.Price}g   [{stock}]";
+				Color col = sel
+					? (canAfford ? new Color(1f, 0.88f, 0.28f) : new Color(0.85f, 0.32f, 0.28f))
+					: (canAfford ? new Color(0.32f, 0.18f, 0.06f) : new Color(0.5f, 0.35f, 0.28f, 0.7f));
+				row.AddThemeColorOverride("font_color", col);
+				row.AddThemeFontSizeOverride("font_size", 12);
+				_list.AddChild(row);
+			}
+
+			if (_selectedIdx < _stock.Count)
+			{
+				var data = ItemDatabase.Instance?.Get(_stock[_selectedIdx].ItemId);
+				_descLabel.Text = data?.Description ?? "";
+			}
 		}
 
-		// Description of selected item
-		if (_selectedIdx < _stock.Count)
-		{
-			var data = ItemDatabase.Instance?.Get(_stock[_selectedIdx].ItemId);
-			_descLabel.Text = data?.Description ?? "";
-		}
+		_hint.Text = CanSell
+			? "[↑↓] browse   [Enter] " + (_sellMode ? "sell" : "buy") + "   [Tab] " + (_sellMode ? "buy" : "sell") + "   [Esc] close"
+			: "[↑↓] browse   [Enter] buy   [Esc] close";
 	}
 
 	// ── Build UI ───────────────────────────────────────────────────────────
@@ -212,10 +374,20 @@ public partial class ShopUI : CanvasLayer
 		_titleLabel.AddThemeFontSizeOverride("font_size", 16);
 		titleRow.AddChild(_titleLabel);
 
-		_goldLabel = new Label { Text = "Gold: 0 g" };
+		var goldRow = new HBoxContainer();
+		goldRow.AddThemeConstantOverride("separation", 4);
+		var coinIcon = new TextureRect();
+		coinIcon.Texture = GD.Load<Texture2D>("res://assets/cute_fantasy/cute_fantasy/icons/no outline/coin_icon.png");
+		coinIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+		coinIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+		coinIcon.CustomMinimumSize = new Vector2(14, 14);
+		coinIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+		goldRow.AddChild(coinIcon);
+		_goldLabel = new Label { Text = "0 g" };
 		_goldLabel.AddThemeColorOverride("font_color", new Color(1f, 0.88f, 0.28f));
 		_goldLabel.AddThemeFontSizeOverride("font_size", 12);
-		titleRow.AddChild(_goldLabel);
+		goldRow.AddChild(_goldLabel);
+		titleRow.AddChild(goldRow);
 
 		var sep = new HSeparator();
 		sep.Modulate = new Color(0.55f, 0.38f, 0.18f, 0.5f);

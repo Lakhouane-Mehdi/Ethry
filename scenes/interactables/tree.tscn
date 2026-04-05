@@ -36,6 +36,8 @@ position = Vector2(0, 27)
 shape = SubResource("RectangleShape2D_trunk")
 
 [node name="HurtBox" type="Area2D" parent="." unique_id=1650499495]
+collision_layer = 0
+collision_mask = 2
 position = Vector2(0, -46)
 scale = Vector2(2, 2)
 

@@ -13,6 +13,12 @@ public partial class EffectsManager : Node
 		Instance = this;
 	}
 
+	public override void _ExitTree()
+	{
+		if (Instance == this)
+			Instance = null;
+	}
+
 	/// <summary>Spawns simple dust puff particles at a position.</summary>
 	public void SpawnDust(Vector2 globalPos, Color? color = null)
 	{

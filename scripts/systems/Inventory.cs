@@ -14,7 +14,11 @@ public partial class Inventory : Node
 	public override void _Ready()
 	{
 		if (IsPlayerInventory)
+		{
 			Instance = this;
+			// DEBUG: starter shovel for testing farming
+			if (!HasItem("Shovel")) AddItem("Shovel", 1);
+		}
 	}
 
 	/// <summary>Moves an item from this inventory to another.</summary>

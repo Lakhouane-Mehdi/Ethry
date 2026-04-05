@@ -145,9 +145,22 @@ public partial class NPC : CharacterBody2D
 		_prompt.Visible = _playerInRange && _stateMachine.CurrentState is NPCIdleState;
 	}
 
+	[Export] public int StarterGold = 0;
+	private bool _gaveStarterGold;
+
 	public void StartDialogue()
 	{
 		if (DialogueLines.Length == 0) return;
+
+		// Gift starter gold if player is broke
+		if (StarterGold > 0 && !_gaveStarterGold && PlayerData.Instance.Gold <= 0)
+		{
+			_gaveStarterGold = true;
+			PlayerData.Instance.AddGold(StarterGold);
+			NotificationManager.Instance?.Show(
+				$"{NpcName} gave you {StarterGold}g to get started!", new Color(0.95f, 0.82f, 0.35f));
+		}
+
 		_pageIndex = _cycleSeed;
 		_stateMachine.TransitionTo("Talking");
 	}

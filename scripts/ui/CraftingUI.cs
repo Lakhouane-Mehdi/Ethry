@@ -83,6 +83,7 @@ public partial class CraftingUI : CanvasLayer
 		_panel.Visible   = true;
 		_selectedIndex   = 0;
 		GetTree().Paused = true;
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 		Refresh();
 	}
 
@@ -91,6 +92,7 @@ public partial class CraftingUI : CanvasLayer
 		_isOpen          = false;
 		_panel.Visible   = false;
 		GetTree().Paused = false;
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 	}
 
 	// ── Input ──────────────────────────────────────────────────────────────
@@ -101,12 +103,14 @@ public partial class CraftingUI : CanvasLayer
 		if (@event.IsActionPressed("ui_down"))
 		{
 			_selectedIndex = Mathf.Min(_selectedIndex + 1, _recipes.Length - 1);
+			AudioManager.Instance?.PlaySfxFlat("ui_navigate");
 			Refresh();
 			GetViewport().SetInputAsHandled();
 		}
 		else if (@event.IsActionPressed("ui_up"))
 		{
 			_selectedIndex = Mathf.Max(_selectedIndex - 1, 0);
+			AudioManager.Instance?.PlaySfxFlat("ui_navigate");
 			Refresh();
 			GetViewport().SetInputAsHandled();
 		}
@@ -242,6 +246,7 @@ public partial class CraftingUI : CanvasLayer
 		var recipe = _recipes[_selectedIndex];
 		if (CraftingRecipes.Craft(recipe))
 		{
+			AudioManager.Instance?.PlaySfx("craft_success");
 			NotificationManager.Instance?.ShowCraftSuccess(GetItemName(recipe.Result));
 			Refresh();
 		}

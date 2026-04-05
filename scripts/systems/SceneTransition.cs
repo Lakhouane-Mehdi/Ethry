@@ -93,5 +93,6 @@ public partial class SceneTransition : CanvasLayer
 		_fadeTimer = 0;
 		_state = State.FadingIn;
 		GetTree().Paused = true;
+		AudioManager.Instance?.PlaySfx("door_open");
 	}
 }

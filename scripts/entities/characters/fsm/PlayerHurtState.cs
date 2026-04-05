@@ -13,6 +13,7 @@ public partial class PlayerHurtState : PlayerState
 	{
 		_player.Modulate = new Color(1, 0.3f, 0.3f);
 		_timer = 0.15f; // Knockback duration
+		AudioManager.Instance?.PlaySfx("player_hurt");
 	}
 
 	public override void Exit()

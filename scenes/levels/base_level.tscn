@@ -504,7 +504,7 @@ sources/1 = SubResource("TileSetAtlasSource_1vfnp")
 size = Vector2(56, 135)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_house"]
-size = Vector2(40, 22)
+size = Vector2(36.5, 22)
 
 [node name="levelroot" type="Node2D" unique_id=667194796]
 y_sort_enabled = true
@@ -525,6 +525,7 @@ tile_map_data = PackedByteArray("AAAAAA0AAQAAAAEAAAAAAA4AAQAAAAIAAAAAAA8AAQAAAAM
 tile_set = SubResource("TileSet_bd4s6")
 
 [node name="interactables" type="Node2D" parent="." unique_id=1808058717]
+z_index = 1
 y_sort_enabled = true
 
 [node name="Tree" parent="interactables" unique_id=1746360041 instance=ExtResource("16_i5apv")]
@@ -588,6 +589,7 @@ position = Vector2(850, 500)
 position = Vector2(100, 728)
 
 [node name="enemies" type="Node2D" parent="." unique_id=1097563442]
+z_index = 1
 
 [node name="slime" parent="enemies" unique_id=1658102612 instance=ExtResource("4_o1chu")]
 position = Vector2(1635, 295)
@@ -640,6 +642,7 @@ layer = 10
 script = ExtResource("21_weather")
 
 [node name="NPCs" type="Node2D" parent="." unique_id=1990606006]
+z_index = 1
 
 [node name="Katy" parent="NPCs" unique_id=1857535483 instance=ExtResource("20_katy")]
 position = Vector2(350, 800)

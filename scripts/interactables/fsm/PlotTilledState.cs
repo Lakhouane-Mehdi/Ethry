@@ -11,11 +11,11 @@ public partial class PlotTilledState : PlotState
 {
     public override void Enter()
     {
-        _plot.UpdateVisuals();
+        _plot.RefreshAutoTile();
         _plot.UpdatePrompt();
     }
 
-    public void Interact()
+    public override void Interact()
     {
         if (!_plot.TryWater())
         {

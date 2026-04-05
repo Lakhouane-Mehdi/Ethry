@@ -142,6 +142,7 @@ public partial class Chest : Area2D
 	public void CloseStorage()
 	{
 		_sprite.PlayBackwards("open");
+		AudioManager.Instance?.PlaySfx("chest_close");
 		_stateMachine.TransitionTo("Closed");
 	}
 
