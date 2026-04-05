@@ -25,10 +25,11 @@ NotificationManager="*res://scripts/systems/NotificationManager.cs"
 PlayerData="*res://scripts/systems/PlayerData.cs"
 DaySystem="*res://scripts/systems/DaySystem.cs"
 GameHUD="*res://scripts/ui/GameHUD.cs"
-Hotbar="*res://scripts/ui/Hotbar.cs"
 SaveSystem="*res://scripts/systems/SaveSystem.cs"
 PauseMenu="*res://scripts/ui/PauseMenu.cs"
 StorageUI="*res://scenes/ui/storage_ui.tscn"
+AudioManager="*res://scenes/systems/audio_manager.tscn"
+EffectsManager="*res://scripts/systems/EffectsManager.cs"
 
 [display]
 
