@@ -12,6 +12,7 @@ public partial class ChestOpeningState : ChestState
     {
         _node.PlayAnimation("open");
         _node.HidePrompt();
+        AudioManager.Instance?.PlaySfx("chest_open");
         
         if (!_node.InitialLootGenerated)
             _node.GenerateInitialLoot();

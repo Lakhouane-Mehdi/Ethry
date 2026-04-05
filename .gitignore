@@ -4,3 +4,6 @@
 
 # Paid assets - do not distribute
 assets/
+
+# Ignore tools folder
+tools/

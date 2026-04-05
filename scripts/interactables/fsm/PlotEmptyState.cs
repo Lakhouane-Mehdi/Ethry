@@ -9,14 +9,14 @@ namespace FSM;
 /// </summary>
 public partial class PlotEmptyState : PlotState
 {
-    public override void Enter()
-    {
-        _plot.UpdateVisuals();
-        _plot.UpdatePrompt();
-    }
+	public override void Enter()
+	{
+		_plot.UpdateVisuals();
+		_plot.UpdatePrompt();
+	}
 
-    public void Interact()
-    {
-        _plot.TryTill();
-    }
+	public override void Interact()
+	{
+		_plot.TryTill();
+	}
 }

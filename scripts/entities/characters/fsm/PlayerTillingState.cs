@@ -26,6 +26,7 @@ public partial class PlayerTillingState : PlayerState
         _player.UpdateSpriteFlip();
 
         TryTill();
+        AudioManager.Instance?.PlaySfx("till_soil");
     }
 
     public override void Update(double delta)
@@ -41,31 +42,31 @@ public partial class PlayerTillingState : PlayerState
     {
         // Get tilling target (1 tile in front of player)
         Vector2 direction = GetFacingDirection();
-        Vector2 targetPos = _player.GlobalPosition + (direction * 48f); // Increased distance slightly for 4x scale
-        
+        Vector2 targetPos = _player.GlobalPosition + (direction * 64f);
+
         // Find the terrain TileMapLayer
         var level = _player.GetParent();
         var terrain = level.GetNodeOrNull<TileMapLayer>("terrain");
-        
+
         if (terrain == null) return;
 
+        // Snap to tile grid
         Vector2I mapPos = terrain.LocalToMap(terrain.ToLocal(targetPos));
         int sourceId = terrain.GetCellSourceId(mapPos);
 
         // Validation: Must be Grass (Source 1)
         if (sourceId == 1)
         {
+            // Snap position to tile grid center in world space
+            Vector2 snappedPos = terrain.ToGlobal(terrain.MapToLocal(mapPos));
+
             // Check if a plot already exists here
-            if (IsPlotAt(targetPos))
+            if (IsPlotAt(snappedPos))
             {
                 NotificationManager.Instance?.ShowWarning("Soil already tilled here.");
                 return;
             }
 
-            SpawnPlot(terrain.MapToLocal(mapPos) * terrain.Scale + terrain.GlobalPosition - new Vector2(32, 32)); 
-            // Wait, snapping is tricky with scales. Let's simplify:
-            Vector2 snappedPos = terrain.ToGlobal(terrain.MapToLocal(mapPos));
-            
             SpawnPlot(snappedPos);
             NotificationManager.Instance?.Show("Soil tilled!", new Color(0.75f, 0.55f, 0.28f));
         }
@@ -95,7 +96,7 @@ public partial class PlayerTillingState : PlayerState
 
         foreach (Node child in interactables.GetChildren())
         {
-            if (child is FarmPlot plot && plot.GlobalPosition.DistanceTo(pos) < 8f)
+            if (child is FarmPlot plot && plot.GlobalPosition.DistanceTo(pos) < 32f)
                 return true;
         }
         return false;
@@ -109,8 +110,10 @@ public partial class PlayerTillingState : PlayerState
         var plot = _plotScene.Instantiate<FarmPlot>();
         interactables.AddChild(plot);
         plot.GlobalPosition = pos;
-        
+
         // Force Tilled state immediately
         plot.GetNode<StateMachine>("StateMachine").TransitionTo("Tilled");
+        // Update auto-tiling for this plot and its neighbors
+        plot.RefreshAutoTile();
     }
 }

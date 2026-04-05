@@ -20,6 +20,7 @@ public partial class PlayerAttackState : PlayerState
 		_timer = _player.AttackCooldown;
 		_player.UpdateSpriteFlip();
 		_player.EnableHitBox();
+		AudioManager.Instance?.PlaySfx("player_attack");
 	}
 
 	public override void Exit()

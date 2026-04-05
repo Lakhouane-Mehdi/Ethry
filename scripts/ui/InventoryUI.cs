@@ -210,6 +210,12 @@ public partial class InventoryUI : CanvasLayer
 		Equipment.Instance.Changed += Refresh;
 	}
 
+	public override void _ExitTree()
+	{
+		if (Inventory.Instance != null) Inventory.Instance.Changed -= Refresh;
+		if (Equipment.Instance != null) Equipment.Instance.Changed -= Refresh;
+	}
+
 	public override void _UnhandledInput(InputEvent @event)
 	{
 		bool togglePressed = @event.IsActionPressed("toggle_inventory") ||
@@ -223,10 +229,10 @@ public partial class InventoryUI : CanvasLayer
 
 		if (!_isVisible) return;
 
-		if      (@event.IsActionPressed("ui_right"))  NavigateRight();
-		else if (@event.IsActionPressed("ui_left"))   NavigateLeft();
-		else if (@event.IsActionPressed("ui_down"))   NavigateDown();
-		else if (@event.IsActionPressed("ui_up"))     NavigateUp();
+		if      (@event.IsActionPressed("ui_right"))  { NavigateRight(); AudioManager.Instance?.PlaySfxFlat("ui_navigate"); }
+		else if (@event.IsActionPressed("ui_left"))   { NavigateLeft();  AudioManager.Instance?.PlaySfxFlat("ui_navigate"); }
+		else if (@event.IsActionPressed("ui_down"))   { NavigateDown();  AudioManager.Instance?.PlaySfxFlat("ui_navigate"); }
+		else if (@event.IsActionPressed("ui_up"))     { NavigateUp();    AudioManager.Instance?.PlaySfxFlat("ui_navigate"); }
 		else if (@event.IsActionPressed("ui_accept")) OnAcceptPressed();
 		else return;
 
@@ -238,6 +244,7 @@ public partial class InventoryUI : CanvasLayer
 		_isVisible = !_isVisible;
 		_root.Visible = _isVisible;
 		_overlay.Visible = _isVisible;
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 		if (_tooltip != null) _tooltip.Visible = false;
 
 		if (_isVisible)
@@ -618,6 +625,8 @@ public partial class InventoryUI : CanvasLayer
 
 		for (int i = 0; i < Cols * Rows; i++)
 		{
+			if (!IsInstanceValid(_gridIcons[i])) continue;
+
 			if (i < _itemOrder.Count)
 			{
 				var data  = _itemOrder[i];

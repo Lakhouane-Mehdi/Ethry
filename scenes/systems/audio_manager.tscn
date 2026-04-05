@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bs6cskx5m80hd"]
+
+[ext_resource type="Script" uid="uid://crasuavd4rctf" path="res://scripts/systems/AudioManager.cs" id="1"]
+
+[node name="AudioManager" type="Node" unique_id=498990925]
+script = ExtResource("1")
+_sfxVolume = 0.5
+_musicVolume = 0.1

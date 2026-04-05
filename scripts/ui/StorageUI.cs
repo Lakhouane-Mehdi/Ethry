@@ -91,6 +91,7 @@ public partial class StorageUI : CanvasLayer
 		_keyboardActive = false;
 		Visible = true;
 		GetTree().Paused = true;
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 		Refresh();
 	}
 
@@ -108,6 +109,7 @@ public partial class StorageUI : CanvasLayer
 	public void Close()
 	{
 		HideTooltip();
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 
 		if (Visible && _activeSource != null)
 			_activeSource.Call("CloseStorage");
@@ -340,7 +342,6 @@ public partial class StorageUI : CanvasLayer
 	private void MoveCursor(int dx, int dy)
 	{
 		_keyboardActive = true;
-		int totalSlots = GridColumns * GridRows;
 
 		int col = _cursorIndex % GridColumns;
 		int row = _cursorIndex / GridColumns;
@@ -373,6 +374,7 @@ public partial class StorageUI : CanvasLayer
 		}
 
 		_cursorIndex = row * GridColumns + col;
+		AudioManager.Instance?.PlaySfxFlat("ui_navigate");
 		UpdateCursorVisual();
 	}
 

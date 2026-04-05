@@ -13,6 +13,7 @@ public partial class EnemyHurtState : EnemyState
     public override void Enter()
     {
         _timer = 0.2f; // Hurt animation duration
+        AudioManager.Instance?.PlaySfx("hit_enemy");
     }
 
     public override void PhysicsUpdate(double delta)

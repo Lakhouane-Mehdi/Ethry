@@ -47,6 +47,8 @@ public partial class Player : CharacterBody2D
 	public override void _Ready()
 	{
 		AddToGroup("player");
+		ZIndex = 1;
+		ZIndex = 1;
 		_sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 		_sprite.AnimationFinished += OnAnimationFinished;
 

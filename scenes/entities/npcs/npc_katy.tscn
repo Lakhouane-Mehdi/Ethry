@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/entities/npcs/fsm/NPCIdleState.cs" id="4_idle"]
 [ext_resource type="Script" path="res://scripts/entities/npcs/fsm/NPCTalkingState.cs" id="5_talk"]
 [ext_resource type="Script" path="res://scripts/entities/npcs/fsm/NPCShopState.cs" id="6_shop"]
+[ext_resource type="Script" path="res://scripts/ui/ShopUI.cs" id="7_shopui"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4fjbr"]
 atlas = ExtResource("1_rnb6i")
@@ -332,7 +333,9 @@ size = Vector2(12, 16.25)
 scale = Vector2(4, 4)
 script = ExtResource("2_npc")
 NpcName = "Katy"
-DialogueLines = PackedStringArray("Welcome to Ethry!", "It\'s a beautiful day, isn\'t it?", "Be careful of the slimes outside.", "I heard there are skeletons deeper in the forest...")
+Role = 1
+DialogueLines = PackedStringArray("Welcome to Ethry! You look like you could use some help.", "Here, take some gold to get you started!", "I sell Wood, Stone, and other materials you'll need.", "An Axe needs 3 Wood and 2 Stone. A Pickaxe needs 3 Wood and 3 Stone.", "Craft them at the crafting table! And if you gather extra materials, I'll buy them from you.")
+StarterGold = 100
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=75651653]
 sprite_frames = SubResource("SpriteFrames_jnvfw")
@@ -355,3 +358,7 @@ script = ExtResource("5_talk")
 
 [node name="Shop" type="Node" parent="StateMachine"]
 script = ExtResource("6_shop")
+
+[node name="ShopUI" type="CanvasLayer" parent="."]
+script = ExtResource("7_shopui")
+ShopTitle = "Katy's General Store"

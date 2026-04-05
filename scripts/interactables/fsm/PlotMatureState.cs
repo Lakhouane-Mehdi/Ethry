@@ -15,7 +15,7 @@ public partial class PlotMatureState : PlotState
         _plot.UpdatePrompt();
     }
 
-    public void Interact()
+    public override void Interact()
     {
         _plot.Harvest();
     }

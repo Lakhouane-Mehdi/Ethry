@@ -31,6 +31,7 @@ public partial class BombshroomExplodeState : EnemyState
         }
 
         _enemy.DropLoot();
+        AudioManager.Instance?.PlaySfx("explosion");
     }
 
     public override void Update(double delta)

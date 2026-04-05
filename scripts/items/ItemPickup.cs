@@ -82,6 +82,7 @@ public partial class ItemPickup : Area2D
 		else
 			Inventory.Instance.AddItem(Type, Amount);
 
+		AudioManager.Instance?.PlaySfx("item_pickup");
 		QueueFree();
 	}
 }

@@ -76,8 +76,18 @@ public partial class GameHUD : CanvasLayer
 		vbox.AddChild(_weatherLabel);
 
 		// Gold row
+		var goldRow = new HBoxContainer();
+		goldRow.AddThemeConstantOverride("separation", 4);
+		var coinIcon = new TextureRect();
+		coinIcon.Texture = GD.Load<Texture2D>("res://assets/cute_fantasy/cute_fantasy/icons/no outline/coin_icon.png");
+		coinIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+		coinIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+		coinIcon.CustomMinimumSize = new Vector2(14, 14);
+		coinIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+		goldRow.AddChild(coinIcon);
 		_goldLabel = MakeLabel("0 g", new Color(1f, 0.88f, 0.28f), 12);
-		vbox.AddChild(_goldLabel);
+		goldRow.AddChild(_goldLabel);
+		vbox.AddChild(goldRow);
 	}
 
 	private static Label MakeLabel(string text, Color color, int size)
@@ -128,6 +138,6 @@ public partial class GameHUD : CanvasLayer
 
 	private void RefreshGold()
 	{
-		_goldLabel.Text = $"⬡  {PlayerData.Instance.Gold} g";
+		_goldLabel.Text = $"{PlayerData.Instance.Gold} g";
 	}
 }

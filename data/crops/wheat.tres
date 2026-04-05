@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CropData" format=3]
+
+[ext_resource type="Script" uid="uid://b378hj0uker5y" path="res://scripts/data/CropData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "Wheat"
+DisplayName = "Wheat"
+HarvestItemId = "Wheat"
+GrowthDays = 4
+HarvestMin = 2
+HarvestMax = 4
+Regrows = false
+ValidSeasons = PackedInt32Array(0, 1, 2)
+GrowthStages = []

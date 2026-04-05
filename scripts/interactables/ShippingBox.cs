@@ -131,6 +131,7 @@ public partial class ShippingBox : Node2D
 
 		Inventory.Instance.RemoveItem(id, cnt);
 		PlayerData.Instance.AddGold(total);
+		AudioManager.Instance?.PlaySfx("sell_item");
 
 		var data = ItemDatabase.Instance?.Get(id);
 		string name = data?.DisplayName ?? id;

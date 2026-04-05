@@ -87,6 +87,7 @@ public partial class Equipment : Node
 
 		Inventory.Instance.RemoveItem(id);
 		SetSlot(slot.Value, id);
+		AudioManager.Instance?.PlaySfx("item_equip");
 		EmitSignal(SignalName.Changed);
 		return true;
 	}

@@ -11,15 +11,14 @@ public partial class PlotGrowingState : PlotState
 {
 	public override void Enter()
 	{
-		_plot.UpdateVisuals();
+		_plot.RefreshAutoTile();
 		_plot.UpdatePrompt();
 		if (DaySystem.Instance != null)
 			DaySystem.Instance.DayAdvanced += OnDayAdvanced;
 	}
 
-	public void Interact()
+	public override void Interact()
 	{
-		// Even when growing, we might want to water if it's dry
 		if (!_plot.TryWater())
 		{
 			_plot.GrowInfo();
@@ -30,10 +29,9 @@ public partial class PlotGrowingState : PlotState
 	{
 		if (_plot.CurrentCrop == null) return;
 
-		// Grow each day
 		_plot.GrowthDay++;
-		_plot.IsWatered = false; // reset watering each morning
-		
+		_plot.IsWatered = false;
+
 		if (_plot.GrowthDay >= _plot.CurrentCrop.GrowthDays)
 		{
 			GetParent<StateMachine>().TransitionTo("Mature");

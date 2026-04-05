@@ -6,7 +6,7 @@ public enum ItemType
 {
 	// Resources — raw materials
 	Wood, Stone, Herb, IronOre, GoldOre, Crystal,
-	Coal, Leather, Bone, Fiber,
+	Coal, Stick, Leather, Bone, Fiber,
 	IronIngot, GoldIngot, Wheat, WheatSeeds, RawMeat,
 
 	// Tools
@@ -62,6 +62,7 @@ public static class ItemRegistry
 		ItemType.GoldOre        => "Gold Ore",
 		ItemType.Crystal        => "Crystal",
 		ItemType.Coal           => "Coal",
+		ItemType.Stick          => "Stick",
 		ItemType.Leather        => "Leather",
 		ItemType.Bone           => "Bone",
 		ItemType.Fiber          => "Fiber",
@@ -111,7 +112,7 @@ public static class ItemRegistry
 	{
 		ItemType.Wood or ItemType.Stone or ItemType.Herb or
 		ItemType.IronOre or ItemType.GoldOre or ItemType.Crystal or
-		ItemType.Coal or ItemType.Leather or ItemType.Bone or ItemType.Fiber or
+		ItemType.Coal or ItemType.Stick or ItemType.Leather or ItemType.Bone or ItemType.Fiber or
 		ItemType.IronIngot or ItemType.GoldIngot or ItemType.Wheat or ItemType.WheatSeeds or
 		ItemType.RawMeat
 			=> ItemCategory.Resource,
@@ -154,6 +155,7 @@ public static class ItemRegistry
 		ItemType.GoldOre       => "Precious golden ore.",
 		ItemType.Crystal       => "A shimmering gemstone.",
 		ItemType.Coal          => "Fuel for the furnace. Burns hot.",
+		ItemType.Stick         => "A sturdy branch. Useful for kindling and crafting.",
 		ItemType.Leather       => "Tanned hide. Used for armor and gear.",
 		ItemType.Bone          => "Sturdy bone. Has many uses.",
 		ItemType.Fiber         => "Plant fiber for weaving and binding.",
@@ -313,9 +315,12 @@ public static class ItemRegistry
 		ItemType.Wood => WoodDecor,
 		ItemType.Herb => HerbDecor,
 
+		// Coal — standalone icon
+		ItemType.Coal => "res://assets/cute_fantasy/cute_fantasy/icons/no outline/coal_icon.png",
+
 		// Resources — use no-outline resource sheet
 		ItemType.Stone or ItemType.IronOre or ItemType.GoldOre or ItemType.Crystal or
-		ItemType.Coal or ItemType.IronIngot or ItemType.GoldIngot or
+		ItemType.Stick or ItemType.IronIngot or ItemType.GoldIngot or
 		ItemType.Leather or ItemType.Bone or ItemType.Fiber
 			=> ResNoOutline,
 
@@ -353,7 +358,8 @@ public static class ItemRegistry
 		ItemType.GoldOre    => new Rect2(0,  16, 16, 16),  // row 1, col 0
 		ItemType.Crystal    => new Rect2(16, 0,  16, 16),  // row 0, col 1
 		ItemType.Stone      => new Rect2(0,  80, 16, 16),  // row 5, col 0
-		ItemType.Coal       => new Rect2(32, 64, 16, 16),  // row 4, col 2 — black coal
+		ItemType.Coal       => new Rect2(0, 0, 16, 16),     // standalone coal_icon.png (full image)
+		ItemType.Stick      => new Rect2(32, 64, 16, 16),  // row 4, col 2 — branch/stick
 		ItemType.IronIngot  => new Rect2(32, 0,  16, 16),  // row 0, col 2 — silver bar
 		ItemType.GoldIngot  => new Rect2(32, 32, 16, 16),  // row 2, col 2 — gold bar
 		ItemType.Leather    => new Rect2(48, 64, 16, 16),  // row 4, col 3 — leather piece
