@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="The Game"
-run/main_scene="uid://dvwccoys3wxdv"
+config/name="Ethry"
+run/main_scene="res://scenes/ui/credits.tscn"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 

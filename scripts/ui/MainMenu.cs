@@ -75,7 +75,7 @@ public partial class MainMenu : Node
 		title.AddThemeConstantOverride("shadow_offset_y", 2);
 		vbox.AddChild(title);
 
-		var subtitle = new Label { Text = "A Stardew-inspired adventure" };
+		var subtitle = new Label { Text = "A pixel adventure" };
 		subtitle.HorizontalAlignment = HorizontalAlignment.Center;
 		subtitle.AddThemeColorOverride("font_color", new Color(0.5f, 0.38f, 0.2f));
 		subtitle.AddThemeFontSizeOverride("font_size", 11);

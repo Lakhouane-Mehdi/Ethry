@@ -15,9 +15,10 @@ public partial class EnemyDeathState : EnemyState
         _enemy.DropLoot();
         AudioManager.Instance?.PlaySfx("enemy_death");
         
-        // Disable collision to avoid hitting a corpse
-        _enemy.CollisionLayer = 0;
-        _enemy.CollisionMask = 0;
+        // Disable collision to avoid hitting a corpse. Deferred because we may
+        // be inside a physics query flush when death is triggered.
+        _enemy.SetDeferred(CollisionObject2D.PropertyName.CollisionLayer, 0);
+        _enemy.SetDeferred(CollisionObject2D.PropertyName.CollisionMask,  0);
     }
 
     public override void Update(double delta)

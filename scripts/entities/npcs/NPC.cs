@@ -41,7 +41,7 @@ public partial class NPC : CharacterBody2D
 		_stateMachine = GetNode<FSM.StateMachine>("StateMachine");
 
 		// ── Floating prompt ──
-		var anchor = new Node2D { TopLevel = true };
+		var anchor = new Node2D { TopLevel = true, ZIndex = 1000, ZAsRelative = false };
 		AddChild(anchor);
 
 		_uiRoot = new Control();

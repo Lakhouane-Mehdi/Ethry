@@ -17,4 +17,3 @@ WeaponDamage = 3
 MaxStack = 1
 CanEquip = true
 Icon = SubResource("AtlasTexture_1458k")
-

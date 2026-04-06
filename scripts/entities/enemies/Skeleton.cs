@@ -18,14 +18,17 @@ public partial class Skeleton : Enemy
 
         UpdateSpriteFlip();
         string dirName = GetDirectionName();
-        
-        // Based on .tscn anim convention: action_direction (except down is often just action)
+
+        // Convention: action_direction (down is often just action).
+        // "die" and any action lacking a directional variant fall back to the bare name.
         string animName = action;
         if (dirName != "down")
-            animName = $"{action}_{dirName}";
-        
-        // Special case: my skeleton scene might use "idle" specifically for down
-        // but let's check against what the base class would do.
+        {
+            string candidate = $"{action}_{dirName}";
+            if (_sprite.SpriteFrames != null && _sprite.SpriteFrames.HasAnimation(candidate))
+                animName = candidate;
+        }
+
         if (_sprite.Animation != animName)
             _sprite.Play(animName);
     }
