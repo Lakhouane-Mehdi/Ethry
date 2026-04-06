@@ -282,4 +282,30 @@ public partial class Player : CharacterBody2D
 		// We can still use this signal if we need to sync with animations,
 		// but the state machine handles most timing now.
 	}
+
+	/// <summary>World-space direction the player is facing for attacks/projectiles.</summary>
+	public Vector2 GetAttackDirection()
+	{
+		string dir = GetDirectionName();
+		return dir switch
+		{
+			"up"   => Vector2.Up,
+			"down" => Vector2.Down,
+			_      => _sprite.FlipH ? Vector2.Left : Vector2.Right,
+		};
+	}
+
+	/// <summary>Spawns an arrow projectile in the player's facing direction.</summary>
+	public void FireArrow()
+	{
+		var scene = GD.Load<PackedScene>("res://scenes/entities/arrow.tscn");
+		if (scene == null) return;
+
+		var arrow = scene.Instantiate<Arrow>();
+		arrow.Direction = GetAttackDirection();
+		arrow.Damage    = AttackDamage;
+		arrow.GlobalPosition = GlobalPosition + arrow.Direction * 10f;
+		GetParent().AddChild(arrow);
+		AudioManager.Instance?.PlaySfx("player_attack");
+	}
 }

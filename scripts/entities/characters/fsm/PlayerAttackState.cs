@@ -8,19 +8,31 @@ namespace FSM;
 public partial class PlayerAttackState : PlayerState
 {
 	private float _timer;
+	private bool  _isBow;
+	private bool  _arrowFired;
 
 	public override void Enter()
 	{
 		_player.Velocity = Vector2.Zero;
-		
+
 		// Select animation based on tool
 		string prefix = ItemRegistry.GetToolPrefix(_player.EquippedToolId);
 		_player.PlayAnimation(prefix);
-
-		_timer = _player.AttackCooldown;
 		_player.UpdateSpriteFlip();
-		_player.EnableHitBox();
-		AudioManager.Instance?.PlaySfx("player_attack");
+
+		_isBow      = prefix == "bow";
+		_arrowFired = false;
+		_timer      = _player.AttackCooldown;
+
+		if (_isBow)
+		{
+			// Ranged: no melee hitbox. Arrow spawns partway through the draw.
+		}
+		else
+		{
+			_player.EnableHitBox();
+			AudioManager.Instance?.PlaySfx("player_attack");
+		}
 	}
 
 	public override void Exit()
@@ -31,6 +43,14 @@ public partial class PlayerAttackState : PlayerState
 	public override void Update(double delta)
 	{
 		_timer -= (float)delta;
+
+		// Fire the arrow near the end of the draw animation
+		if (_isBow && !_arrowFired && _timer <= _player.AttackCooldown * 0.4f)
+		{
+			_player.FireArrow();
+			_arrowFired = true;
+		}
+
 		if (_timer <= 0)
 		{
 			GetParent<StateMachine>().TransitionTo("Idle");

@@ -242,10 +242,11 @@ public static class ItemRegistry
 		if (string.IsNullOrEmpty(itemId)) return "attack";
 		
 		string idLower = itemId.ToLower();
-		if (idLower.Contains("axe"))     return "axe";
 		if (idLower.Contains("pickaxe")) return "pickaxe";
+		if (idLower.Contains("axe"))     return "axe";
 		if (idLower.Contains("shovel"))  return "shovel";
-		
+		if (idLower.Contains("bow"))     return "bow";
+
 		return "attack";
 	}
 

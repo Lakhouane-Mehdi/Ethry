@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://i7jxeytph5oq"]
+
+[ext_resource type="Script" uid="uid://ce2je72uexdei" path="res://scripts/entities/Arrow.cs" id="1_arrow"]
+[ext_resource type="Texture2D" uid="uid://bu2xcocju76mh" path="res://assets/cute_fantasy/cute_fantasy/other/bow_stages.png" id="2_y6fod"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1uacp"]
+atlas = ExtResource("2_y6fod")
+region = Rect2(48, 0, 13, 3)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_arrow"]
+size = Vector2(18.5, 4)
+
+[node name="Arrow" type="Area2D" unique_id=1544473038]
+scale = Vector2(2, 2)
+script = ExtResource("1_arrow")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1318690330]
+scale = Vector2(1.5, 1.5)
+texture = SubResource("AtlasTexture_1uacp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2029198921]
+position = Vector2(0.25, 0)
+shape = SubResource("RectangleShape2D_arrow")
