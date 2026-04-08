@@ -142,6 +142,9 @@ public partial class AudioManager : Node
 
 		// Also update on scene change
 		GetTree().TreeChanged += OnTreeChanged;
+
+		// Apply persisted settings if any
+		LoadSettings();
 	}
 
 	private float _sceneChangeDebounce;
@@ -311,6 +314,48 @@ public partial class AudioManager : Node
 			if (_activeMusic?.Playing == true)
 				_activeMusic.VolumeDb = LinearToDb(_musicVolume);
 		}
+	}
+
+	public float MasterVolume
+	{
+		get
+		{
+			int idx = AudioServer.GetBusIndex(MasterBus);
+			return idx >= 0 ? Mathf.DbToLinear(AudioServer.GetBusVolumeDb(idx)) : 1f;
+		}
+		set
+		{
+			int idx = AudioServer.GetBusIndex(MasterBus);
+			if (idx >= 0)
+				AudioServer.SetBusVolumeDb(idx, LinearToDb(Mathf.Clamp(value, 0f, 1f)));
+		}
+	}
+
+	// ── Settings persistence ───────────────────────────────────────────────
+	private const string SettingsPath = "user://settings.cfg";
+
+	public void SaveSettings()
+	{
+		var cfg = new ConfigFile();
+		cfg.SetValue("audio", "master", MasterVolume);
+		cfg.SetValue("audio", "music",  MusicVolume);
+		cfg.SetValue("audio", "sfx",    SfxVolume);
+		cfg.SetValue("display", "fullscreen", DisplayServer.WindowGetMode() == DisplayServer.WindowMode.Fullscreen);
+		cfg.SetValue("display", "vsync",      DisplayServer.WindowGetVsyncMode() != DisplayServer.VSyncMode.Disabled);
+		cfg.Save(SettingsPath);
+	}
+
+	public void LoadSettings()
+	{
+		var cfg = new ConfigFile();
+		if (cfg.Load(SettingsPath) != Error.Ok) return;
+		MasterVolume = (float)cfg.GetValue("audio", "master", 1.0);
+		MusicVolume  = (float)cfg.GetValue("audio", "music",  _musicVolume);
+		SfxVolume    = (float)cfg.GetValue("audio", "sfx",    _sfxVolume);
+		bool fs = (bool)cfg.GetValue("display", "fullscreen", false);
+		DisplayServer.WindowSetMode(fs ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
+		bool vs = (bool)cfg.GetValue("display", "vsync", true);
+		DisplayServer.WindowSetVsyncMode(vs ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
 	}
 
 	// ── Internal helpers ───────────────────────────────────────────────────

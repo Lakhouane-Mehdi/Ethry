@@ -23,7 +23,7 @@ size = Vector2(14, 12)
 y_sort_enabled = true
 scale = Vector2(3, 3)
 script = ExtResource("1_rnode")
-DropType = 2
+DropId = "Herb"
 IsForageable = true
 ItemPickupScene = ExtResource("3_pickup")
 

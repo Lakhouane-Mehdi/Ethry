@@ -14,17 +14,23 @@ public partial class WeatherSystem : CanvasLayer
 	public static WeatherSystem Instance { get; private set; }
 
 	// ── Exports ────────────────────────────────────────────────────────────
-	[Export] public bool  StartRaining  = false;
+	[Export] public WeatherType StartWeather = WeatherType.Clear;
 	[Export] public float CloudSpeedMin = 6f;
 	[Export] public float CloudSpeedMax = 16f;
 	[Export] public int   CloudCount    = 14;
 
 	// ── Signals ────────────────────────────────────────────────────────────
 	[Signal] public delegate void WeatherChangedEventHandler(bool isRaining);
+	[Signal] public delegate void WeatherTypeChangedEventHandler(int newType);
 	[Signal] public delegate void ThunderClapEventHandler();
 
 	// ── Weather types ──────────────────────────────────────────────────────
 	public enum WeatherType { Clear, Cloudy, Rain, Storm, Snow }
+
+	// Shader overlay (wetness, storm vignette, snow, fog) on its own canvas layer.
+	private ColorRect     _overlayRect;
+	private ShaderMaterial _overlayMat;
+	private CanvasLayer   _overlayLayer;
 
 	public WeatherType CurrentWeather { get; private set; } = WeatherType.Clear;
 	public bool IsRaining => CurrentWeather is WeatherType.Rain or WeatherType.Storm;
@@ -45,7 +51,7 @@ public partial class WeatherSystem : CanvasLayer
 	{
 		public Sprite2D Sprite;
 		public float    Speed;
-		public Vector2  WorldPos;
+		public Vector2  Offset;     // offset from camera center, in screen pixels
 		public float    BaseAlpha;
 	}
 	private CloudEntry[] _clouds;
@@ -100,16 +106,14 @@ public partial class WeatherSystem : CanvasLayer
 		_lightningFlash.SetAnchorsPreset(Control.LayoutPreset.FullRect);
 		AddChild(_lightningFlash);
 
+		CreateOverlay();
 		CreateClouds();
 		CreateRain();
 		CreateSnow();
 		CreateWind();
 
-		// Initial weather
-		if (StartRaining)
-			SetWeatherImmediate(WeatherType.Rain);
-		else
-			SetWeatherImmediate(WeatherType.Clear);
+		// Initial weather (restored from save if available, otherwise export default)
+		SetWeatherImmediate(StartWeather);
 
 		_weatherTimer = RollDuration();
 		_lightningTimer = (float)GD.RandRange(8, 20);
@@ -194,13 +198,17 @@ public partial class WeatherSystem : CanvasLayer
 		// Emit signal if precipitation state changed
 		if (wasPrecip != isPrecip)
 			EmitSignal(SignalName.WeatherChanged, isPrecip);
+		// Always emit type change so HUDs / other systems can react
+		EmitSignal(SignalName.WeatherTypeChanged, (int)newWeather);
+
+		TweenOverlayFor(newWeather);
 
 		var tween = CreateTween().SetParallel(true);
 		float dur = 3.5f;
 
 		// Rain particles
 		float rainTarget = (newWeather == WeatherType.Rain) ? 0.7f
-		                 : (newWeather == WeatherType.Storm) ? 1.0f : 0.0f;
+						 : (newWeather == WeatherType.Storm) ? 1.0f : 0.0f;
 		tween.TweenProperty(_rainParticles, "amount_ratio", rainTarget, dur);
 
 		// Snow particles
@@ -209,7 +217,7 @@ public partial class WeatherSystem : CanvasLayer
 
 		// Wind particles
 		float windTarget = (newWeather is WeatherType.Storm or WeatherType.Snow) ? 1.0f
-		                 : (newWeather == WeatherType.Rain) ? 0.4f : 0.0f;
+						 : (newWeather == WeatherType.Rain) ? 0.4f : 0.0f;
 		tween.TweenProperty(_windParticles, "amount_ratio", windTarget, dur);
 
 		// Cloud opacity (moved to a baseline alpha)
@@ -235,18 +243,25 @@ public partial class WeatherSystem : CanvasLayer
 			_lightningTimer = (float)GD.RandRange(5, 12);
 	}
 
+	/// <summary>Force a specific weather type immediately (used by SaveSystem load).</summary>
+	public void SetWeather(WeatherType weather) => SetWeatherImmediate(weather);
+
 	private void SetWeatherImmediate(WeatherType weather)
 	{
 		CurrentWeather = weather;
+		EmitSignal(SignalName.WeatherTypeChanged, (int)weather);
+		if (IsPrecipitating)
+			EmitSignal(SignalName.WeatherChanged, true);
+		ApplyOverlayImmediate(weather);
 
 		float rainRatio = (weather == WeatherType.Rain) ? 0.7f
-		                : (weather == WeatherType.Storm) ? 1.0f : 0.0f;
+						: (weather == WeatherType.Storm) ? 1.0f : 0.0f;
 		_rainParticles.AmountRatio = rainRatio;
 
 		_snowParticles.AmountRatio = weather == WeatherType.Snow ? 1.0f : 0.0f;
 
 		float windRatio = (weather is WeatherType.Storm or WeatherType.Snow) ? 1.0f
-		                : (weather == WeatherType.Rain) ? 0.4f : 0.0f;
+						: (weather == WeatherType.Rain) ? 0.4f : 0.0f;
 		_windParticles.AmountRatio = windRatio;
 
 		// (Tint logic handled externally now)
@@ -332,58 +347,144 @@ public partial class WeatherSystem : CanvasLayer
 		windTween.TweenProperty(_windParticles, "amount_ratio", 0.4f, 2.0f).SetDelay(1.5f);
 	}
 
-	// ── Cloud update with correct wrapping ─────────────────────────────────
+	// ── Cloud update — offsets are relative to camera, so clouds always
+	// surround the player no matter where they go or how fast they run. ──
 	private void UpdateClouds(float dt)
 	{
-		var cam    = GetViewport().GetCamera2D();
-		var camPos = cam?.GlobalPosition ?? Vector2.Zero;
 		var center = new Vector2(_screenW * 0.5f, _screenH * 0.5f);
 
-		float wrapDist = _screenW * 1.5f;
-		float wrapDistY = _screenH * 1.5f;
+		float wrapX = _screenW * 0.7f;
+		float wrapY = _screenH * 0.7f;
+
+		// Camera parallax — clouds drift past as the player moves, but at a
+		// fraction of camera speed so they feel distant rather than pinned.
+		var cam = GetViewport().GetCamera2D();
+		Vector2 camPos = cam?.GlobalPosition ?? Vector2.Zero;
+		// 1.0 = fully counter the camera, so clouds sit in world space and the
+		// player runs past them instead of dragging them along.
+		const float parallax = 1.0f;
+		var camShift = -camPos * parallax;
 
 		for (int i = 0; i < _clouds.Length; i++)
 		{
 			ref var cd = ref _clouds[i];
-			cd.WorldPos.X += cd.Speed * dt;
+			cd.Offset.X += cd.Speed * dt;
 
-			float relX = cd.WorldPos.X - camPos.X;
-			float relY = cd.WorldPos.Y - camPos.Y;
+			// Wrap so clouds re-enter from the opposite side
+			if (cd.Offset.X >  wrapX) cd.Offset.X = -wrapX;
+			if (cd.Offset.X < -wrapX) cd.Offset.X =  wrapX;
+			if (cd.Offset.Y >  wrapY) cd.Offset.Y = -wrapY;
+			if (cd.Offset.Y < -wrapY) cd.Offset.Y =  wrapY;
 
-			// Wrap on all edges
-			if (relX > wrapDist)
-			{
-				cd.WorldPos.X = camPos.X - wrapDist - (float)GD.RandRange(0, 200);
-				cd.WorldPos.Y = camPos.Y + (float)GD.RandRange(-_screenH, _screenH);
-			}
-			else if (relX < -wrapDist)
-			{
-				cd.WorldPos.X = camPos.X + wrapDist + (float)GD.RandRange(0, 200);
-				cd.WorldPos.Y = camPos.Y + (float)GD.RandRange(-_screenH, _screenH);
-			}
+			// Combine drift offset with parallaxed camera shift, then wrap the
+			// final on-screen position so clouds always cover the viewport.
+			Vector2 p = cd.Offset + camShift;
+			float spanX = _screenW * 1.4f;
+			float spanY = _screenH * 1.4f;
+			p.X = Mathf.PosMod(p.X + spanX * 0.5f, spanX) - spanX * 0.5f;
+			p.Y = Mathf.PosMod(p.Y + spanY * 0.5f, spanY) - spanY * 0.5f;
 
-			if (relY > wrapDistY)
-				cd.WorldPos.Y = camPos.Y - wrapDistY;
-			else if (relY < -wrapDistY)
-				cd.WorldPos.Y = camPos.Y + wrapDistY;
-
-			var screenPos = (cd.WorldPos - camPos) + center;
-			cd.Sprite.Position = screenPos;
-			cd.Sprite.Visible = true;
+			cd.Sprite.Position = center + p;
+			cd.Sprite.Visible  = true;
 		}
+	}
+
+	// ── Shader overlay ─────────────────────────────────────────────────────
+	private static readonly Shader OverlayShader =
+		GD.Load<Shader>("res://shaders/weather_overlay.gdshader");
+
+	private void CreateOverlay()
+	{
+		// Dedicated layer below cloud/rain layer so particles render ON TOP of
+		// the tinted world and remain visible during storms.
+		_overlayLayer = new CanvasLayer { Layer = 1 };
+		AddChild(_overlayLayer);
+
+		_overlayMat = new ShaderMaterial { Shader = OverlayShader };
+		_overlayRect = new ColorRect
+		{
+			Color       = Colors.White,
+			MouseFilter = Control.MouseFilterEnum.Ignore,
+			Material    = _overlayMat,
+		};
+		_overlayRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		_overlayLayer.AddChild(_overlayRect);
+
+		SetOverlayUniforms(0, 0, 0, 0);
+	}
+
+	private void SetOverlayUniforms(float wetness, float storm, float snow, float fog)
+	{
+		_overlayMat.SetShaderParameter("wetness", wetness);
+		_overlayMat.SetShaderParameter("storm",   storm);
+		_overlayMat.SetShaderParameter("snow",    snow);
+		_overlayMat.SetShaderParameter("fog",     fog);
+	}
+
+	private static (float wet, float storm, float snow, float fog) OverlayFor(WeatherType w) => w switch
+	{
+		WeatherType.Clear  => (0.00f, 0.00f, 0.00f, 0.00f),
+		WeatherType.Cloudy => (0.00f, 0.00f, 0.00f, 0.25f),
+		WeatherType.Rain   => (0.80f, 0.00f, 0.00f, 0.35f),
+		WeatherType.Storm  => (1.00f, 1.00f, 0.00f, 0.45f),
+		WeatherType.Snow   => (0.00f, 0.00f, 1.00f, 0.55f),
+		_                  => (0, 0, 0, 0),
+	};
+
+	private void TweenOverlayFor(WeatherType w)
+	{
+		var (wet, storm, snow, fog) = OverlayFor(w);
+		var tw = CreateTween().SetParallel(true);
+		float dur = 3.5f;
+		tw.TweenMethod(Callable.From<float>(v => _overlayMat.SetShaderParameter("wetness", v)),
+			(float)_overlayMat.GetShaderParameter("wetness"), wet, dur);
+		tw.TweenMethod(Callable.From<float>(v => _overlayMat.SetShaderParameter("storm", v)),
+			(float)_overlayMat.GetShaderParameter("storm"), storm, dur);
+		tw.TweenMethod(Callable.From<float>(v => _overlayMat.SetShaderParameter("snow", v)),
+			(float)_overlayMat.GetShaderParameter("snow"), snow, dur);
+		tw.TweenMethod(Callable.From<float>(v => _overlayMat.SetShaderParameter("fog", v)),
+			(float)_overlayMat.GetShaderParameter("fog"), fog, dur);
+	}
+
+	private void ApplyOverlayImmediate(WeatherType w)
+	{
+		if (_overlayMat == null) return;
+		var (wet, storm, snow, fog) = OverlayFor(w);
+		SetOverlayUniforms(wet, storm, snow, fog);
+	}
+
+	// ── Cloud variety ──────────────────────────────────────────────────────
+	// clouds.png is a 128×128 sheet containing a 2×2 grid of 64×64 cloud sprites.
+	// Build 4 AtlasTextures once so each cloud entry picks a random variant.
+	private static readonly Texture2D[] CloudVariants = BuildCloudVariants();
+	private static Texture2D[] BuildCloudVariants()
+	{
+		var result = new Texture2D[4];
+		var regions = new[]
+		{
+			new Rect2(0,  0,  64, 64),
+			new Rect2(64, 0,  64, 64),
+			new Rect2(0,  64, 64, 64),
+			new Rect2(64, 64, 64, 64),
+		};
+		for (int i = 0; i < 4; i++)
+		{
+			var atlas = new AtlasTexture { Atlas = CloudTex, Region = regions[i] };
+			result[i] = atlas;
+		}
+		return result;
 	}
 
 	// ── Cloud creation ─────────────────────────────────────────────────────
 	private void CreateClouds()
 	{
 		_clouds = new CloudEntry[CloudCount];
-		var cam    = GetViewport().GetCamera2D();
-		var camPos = cam?.GlobalPosition ?? Vector2.Zero;
 
 		for (int i = 0; i < CloudCount; i++)
 		{
-			var c = new Sprite2D { Texture = CloudTex, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
-			c.Modulate = new Color(1f, 1f, 1f, 0.04f);
+			var variant = CloudVariants[(int)GD.RandRange(0, CloudVariants.Length - 1)];
+			var c = new Sprite2D { Texture = variant, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
+			c.Modulate = new Color(1f, 1f, 1f, 0.12f);
 			c.ZIndex = 3;
 
 			float sx = (float)GD.RandRange(4.0, 8.0);
@@ -391,9 +492,10 @@ public partial class WeatherSystem : CanvasLayer
 			c.Scale = new Vector2(sx, sy);
 			AddChild(c);
 
-			var worldPos = new Vector2(
-				camPos.X + (float)GD.RandRange(-_screenW * 2f, _screenW * 2f),
-				camPos.Y + (float)GD.RandRange(-_screenH * 2f, _screenH * 2f)
+			// Random screen-relative offset, spread across the visible viewport
+			var offset = new Vector2(
+				(float)GD.RandRange(-_screenW * 0.55f, _screenW * 0.55f),
+				(float)GD.RandRange(-_screenH * 0.55f, _screenH * 0.55f)
 			);
 
 			// Alternate speeds — some fast, some slow for depth
@@ -404,16 +506,52 @@ public partial class WeatherSystem : CanvasLayer
 			{
 				Sprite    = c,
 				Speed     = speed,
-				WorldPos  = worldPos,
+				Offset    = offset,
 				BaseAlpha = 0.12f + (float)GD.RandRange(0, 0.1f),
 			};
 		}
 		_cloudsReady = true;
 	}
 
-	// ── Rain particles ─────────────────────────────────────────────────────
+	// ── Rain particles (with splash sub-emitter) ──────────────────────────
+	private static readonly Texture2D RainImpactTex = GD.Load<Texture2D>(
+		"res://assets/cute_fantasy/cute_fantasy/weather effects/rain_drop_impact.png");
+
 	private void CreateRain()
 	{
+		// Sub-emitter: spawned at the end of each rain particle's life → splash.
+		var splash = new GpuParticles2D
+		{
+			Amount      = 64,
+			Lifetime    = 0.35f,
+			Explosiveness = 1.0f,
+			Emitting    = false, // triggered by parent
+			OneShot     = true,
+		};
+		var splashMat = new ParticleProcessMaterial();
+		splashMat.Direction          = new Vector3(0, -1, 0);
+		splashMat.Spread             = 0f;
+		splashMat.InitialVelocityMin = 0f;
+		splashMat.InitialVelocityMax = 0f;
+		splashMat.Gravity            = Vector3.Zero;
+		splashMat.ScaleMin           = 1.0f;
+		splashMat.ScaleMax           = 1.4f;
+		splashMat.Color              = new Color(0.85f, 0.95f, 1f, 0.75f);
+		splashMat.AnimSpeedMin       = 7f; // play 7 frames over lifetime (1/0.35 ≈ 2.8/s * 7)
+		splashMat.AnimSpeedMax       = 7f;
+		splash.ProcessMaterial = splashMat;
+		splash.Texture         = RainImpactTex;
+
+		// Animate the 7-frame sheet via a CanvasItemMaterial
+		splash.Material = new CanvasItemMaterial
+		{
+			ParticlesAnimation   = true,
+			ParticlesAnimHFrames = 7,
+			ParticlesAnimVFrames = 1,
+			ParticlesAnimLoop    = false,
+		};
+		AddChild(splash);
+
 		_rainParticles = new GpuParticles2D
 		{
 			Amount     = 300,
@@ -434,11 +572,14 @@ public partial class WeatherSystem : CanvasLayer
 		mat.ScaleMin            = 2.0f;
 		mat.ScaleMax            = 3.5f;
 		mat.Color               = new Color(0.7f, 0.85f, 1f, 0.55f);
+		mat.SubEmitterMode      = ParticleProcessMaterial.SubEmitterModeEnum.AtEnd;
+		mat.SubEmitterAmountAtEnd = 1;
 
 		_rainParticles.ProcessMaterial = mat;
 		_rainParticles.Texture         = RainTex;
 		_rainParticles.Position        = new Vector2(_screenW * 0.5f, -20);
 		AddChild(_rainParticles);
+		_rainParticles.SubEmitter = _rainParticles.GetPathTo(splash);
 	}
 
 	// ── Snow particles ─────────────────────────────────────────────────────
@@ -493,11 +634,21 @@ public partial class WeatherSystem : CanvasLayer
 		mat.InitialVelocityMax  = 220f;
 		mat.EmissionShape       = ParticleProcessMaterial.EmissionShapeEnum.Box;
 		mat.EmissionBoxExtents  = new Vector3(10, _screenH, 0);
-		mat.Color               = new Color(1f, 1f, 1f, 0.18f);
+		mat.Color               = new Color(1f, 1f, 1f, 0.22f);
+		mat.AnimSpeedMin        = 8f;
+		mat.AnimSpeedMax        = 12f;
 
 		_windParticles.ProcessMaterial = mat;
 		_windParticles.Texture         = WindTex;
 		_windParticles.Position        = new Vector2(-50, _screenH * 0.5f);
+		// wind_anim.png is a 14-frame horizontal strip — play as sprite sheet
+		_windParticles.Material = new CanvasItemMaterial
+		{
+			ParticlesAnimation   = true,
+			ParticlesAnimHFrames = 14,
+			ParticlesAnimVFrames = 1,
+			ParticlesAnimLoop    = true,
+		};
 		AddChild(_windParticles);
 	}
 }

@@ -91,16 +91,17 @@ layer = 50
 script = ExtResource("1_craftui")
 
 [node name="Panel" type="PanelContainer" parent="." unique_id=2087638093]
+texture_filter = 1
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -270.0
-offset_top = -240.0
-offset_right = 270.0
-offset_bottom = 240.0
+offset_left = -380.0
+offset_top = -310.0
+offset_right = 380.0
+offset_bottom = 310.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBox_Panel")
@@ -110,8 +111,8 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="TitleRibbon" type="TextureRect" parent="Panel/MainVBox" unique_id=1281361222]
-texture_filter = 2
-custom_minimum_size = Vector2(0, 26)
+texture_filter = 1
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 texture = SubResource("AtlasTex_Ribbon")
 expand_mode = 3
@@ -120,7 +121,7 @@ stretch_mode = 5
 [node name="TitleLabel" type="Label" parent="Panel/MainVBox" unique_id=1751530717]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.32, 0.16, 0.06, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 22
 text = "CRAFTING TABLE"
 horizontal_alignment = 1
 
@@ -134,7 +135,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 10
 
 [node name="LeftPanel" type="PanelContainer" parent="Panel/MainVBox/ContentHBox" unique_id=1187388504]
-custom_minimum_size = Vector2(195, 0)
+custom_minimum_size = Vector2(270, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBox_LeftPanel")
@@ -164,7 +165,7 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="ResultIcon" type="TextureRect" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox" unique_id=715774529]
-texture_filter = 2
+texture_filter = 1
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 expand_mode = 1
@@ -173,17 +174,18 @@ stretch_mode = 5
 [node name="ResultVBox" type="VBoxContainer" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox" unique_id=1684658510]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 2
+size_flags_vertical = 5
+theme_override_constants/separation = 4
 
 [node name="ResultName" type="Label" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox/ResultVBox" unique_id=529103720]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.32, 0.16, 0.06, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 22
 
 [node name="ResultDesc" type="Label" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox/ResultHBox/ResultVBox" unique_id=1884933159]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.85)
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 14
 autowrap_mode = 3
 
 [node name="Sep1" type="HSeparator" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=1401638509]
@@ -192,20 +194,20 @@ layout_mode = 2
 
 [node name="IngredientsLabel" type="Label" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=933614780]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.8)
-theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.85)
+theme_override_font_sizes/font_size = 15
 text = "INGREDIENTS"
 
 [node name="IngredientList" type="VBoxContainer" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=891764300]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 5
+theme_override_constants/separation = 8
 
 [node name="CraftButton" type="Button" parent="Panel/MainVBox/ContentHBox/RightPanel/RightVBox" unique_id=1972544054]
-custom_minimum_size = Vector2(0, 34)
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.95, 0.75, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.95, 0.98, 0.78, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBox_CraftBtn")
 theme_override_styles/pressed = SubResource("StyleBox_CraftBtn")
 theme_override_styles/hover = SubResource("StyleBox_CraftBtn")
@@ -218,8 +220,8 @@ layout_mode = 2
 
 [node name="CloseHint" type="Label" parent="Panel/MainVBox" unique_id=369205057]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.65)
-theme_override_font_sizes/font_size = 9
+theme_override_colors/font_color = Color(0.42, 0.24, 0.08, 0.85)
+theme_override_font_sizes/font_size = 13
 text = "[E]  Close"
 horizontal_alignment = 1
 

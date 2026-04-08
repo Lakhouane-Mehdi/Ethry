@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ItemData.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/crops/crops.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2")
+region = Rect2(96, 384, 16, 16)
+
+[resource]
+script = ExtResource("1")
+Id = "GreenPepper"
+DisplayName = "Green Pepper"
+Category = 4
+Description = "Fresh green pepper. Restores 2 HP."
+HealAmount = 2
+MaxStack = 20
+Icon = SubResource("AtlasTexture_icon")

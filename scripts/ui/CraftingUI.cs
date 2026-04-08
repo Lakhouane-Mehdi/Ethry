@@ -8,6 +8,7 @@ public partial class CraftingUI : CanvasLayer
 {
 	// ── Scene nodes ────────────────────────────────────────────────────────
 	private PanelContainer _panel;
+	private Control        _blurOverlay;
 	private Label          _titleLabel;
 	private VBoxContainer  _recipeList;
 	private TextureRect    _resultIcon;
@@ -62,6 +63,23 @@ public partial class CraftingUI : CanvasLayer
 
 		_craftButton.Pressed += OnCraftPressed;
 
+		// Blur backdrop (matches inventory / storage UI)
+		_blurOverlay = new Control();
+		_blurOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		_blurOverlay.MouseFilter = Control.MouseFilterEnum.Ignore;
+		_blurOverlay.Visible = false;
+		AddChild(_blurOverlay);
+		MoveChild(_blurOverlay, 0); // ensure behind the panel
+		var bbc = new BackBufferCopy { CopyMode = BackBufferCopy.CopyModeEnum.Viewport };
+		_blurOverlay.AddChild(bbc);
+		var dim = new ColorRect();
+		dim.Color = new Color(0, 0, 0, 0.4f);
+		dim.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		const string CraftBlurMatPath = "res://shaders/blur_material.tres";
+		if (FileAccess.FileExists(CraftBlurMatPath))
+			dim.Material = GD.Load<ShaderMaterial>(CraftBlurMatPath);
+		_blurOverlay.AddChild(dim);
+
 		// Bitmap pixel font
 		var font = new FontFile();
 		font.LoadBitmapFont(FontPath);
@@ -69,9 +87,9 @@ public partial class CraftingUI : CanvasLayer
 		theme.DefaultFont = font;
 		_panel.Theme = theme;
 
-		// Textured button styles
-		ApplyButtonStyle(_craftButton, GreenBtnNormal, GreenBtnHover, GreenBtnPressed);
-		_craftButton.AddThemeStyleboxOverride("disabled", MakeBtnStyle(BrownBtnPressed));
+		// Note: do NOT apply the textured GreenBtn region here — that sprite has
+		// "SAVE" baked into the pixel art and would bleed through the "CRAFT" label.
+		// The scene's StyleBox_CraftBtn (flat green) is used instead.
 	}
 
 	// ── Public API ─────────────────────────────────────────────────────────
@@ -81,6 +99,7 @@ public partial class CraftingUI : CanvasLayer
 		if (title != null)   _titleLabel.Text = title;
 		_isOpen          = true;
 		_panel.Visible   = true;
+		if (_blurOverlay != null) _blurOverlay.Visible = true;
 		_selectedIndex   = 0;
 		GetTree().Paused = true;
 		AudioManager.Instance?.PlaySfxFlat("ui_click");
@@ -91,6 +110,7 @@ public partial class CraftingUI : CanvasLayer
 	{
 		_isOpen          = false;
 		_panel.Visible   = false;
+		if (_blurOverlay != null) _blurOverlay.Visible = false;
 		GetTree().Paused = false;
 		AudioManager.Instance?.PlaySfxFlat("ui_click");
 	}
@@ -134,15 +154,16 @@ public partial class CraftingUI : CanvasLayer
 			bool selected = i == _selectedIndex;
 
 			var row = new PanelContainer();
-			row.CustomMinimumSize = new Vector2(0, 40);
+			row.CustomMinimumSize = new Vector2(0, 56);
+			row.TextureFilter     = CanvasItem.TextureFilterEnum.Nearest;
 			row.AddThemeStyleboxOverride("panel", MakeRecipeStyle(selected));
 
 			var hbox = new HBoxContainer();
-			hbox.AddThemeConstantOverride("separation", 8);
+			hbox.AddThemeConstantOverride("separation", 12);
 			row.AddChild(hbox);
 
 			var icon = new TextureRect();
-			icon.CustomMinimumSize = new Vector2(32, 32);
+			icon.CustomMinimumSize = new Vector2(22, 22);
 			icon.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
 			icon.StretchMode       = TextureRect.StretchModeEnum.KeepAspectCentered;
 			icon.TextureFilter     = CanvasItem.TextureFilterEnum.Nearest;
@@ -156,7 +177,7 @@ public partial class CraftingUI : CanvasLayer
 			nameLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
 			nameLabel.SizeFlagsVertical   = Control.SizeFlags.ShrinkCenter;
 			nameLabel.AddThemeColorOverride("font_color", canCraft ? TextPrimary : TextSecondary);
-			nameLabel.AddThemeFontSizeOverride("font_size", 11);
+			nameLabel.AddThemeFontSizeOverride("font_size", 16);
 			hbox.AddChild(nameLabel);
 
 			// Invisible click button for mouse selection
@@ -185,9 +206,9 @@ public partial class CraftingUI : CanvasLayer
 			: resultName;
 
 		var resultData = GetItemData(sel.Result);
-		string desc  = resultData?.Description ?? ItemRegistry.GetDescription(sel.Result);
-		int    dmg   = resultData?.WeaponDamage ?? ItemRegistry.GetWeaponDamage(sel.Result);
-		int    arm   = resultData?.ArmorRating  ?? ItemRegistry.GetArmorRating(sel.Result);
+		string desc  = resultData?.Description ?? "";
+		int    dmg   = resultData?.WeaponDamage ?? 0;
+		int    arm   = resultData?.ArmorRating  ?? 0;
 		string stats = "";
 		if (dmg > 0) stats += $"\nDamage: {dmg}";
 		if (arm > 0) stats += $"\nDefence: +{arm}";
@@ -196,32 +217,33 @@ public partial class CraftingUI : CanvasLayer
 		// Rebuild ingredient list
 		foreach (Node child in _ingredientList.GetChildren()) child.QueueFree();
 
-		foreach (var (ingType, amount) in sel.Ingredients)
+		foreach (var (ingId, amount) in sel.Ingredients)
 		{
 			var row = new HBoxContainer();
-			row.AddThemeConstantOverride("separation", 6);
+			row.AddThemeConstantOverride("separation", 12);
+			row.CustomMinimumSize = new Vector2(0, 44);
 
 			var ingIcon = new TextureRect();
-			ingIcon.CustomMinimumSize = new Vector2(28, 28);
+			ingIcon.CustomMinimumSize = new Vector2(52, 52);
 			ingIcon.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
 			ingIcon.StretchMode       = TextureRect.StretchModeEnum.KeepAspectCentered;
 			ingIcon.TextureFilter     = CanvasItem.TextureFilterEnum.Nearest;
-			ingIcon.Texture           = GetIconTexture(ingType);
+			ingIcon.Texture           = GetIconTexture(ingId);
 			ingIcon.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
 			row.AddChild(ingIcon);
 
-			int  have   = Inventory.Instance.GetCount(ingType);
+			int  have   = Inventory.Instance.GetCount(ingId);
 			bool enough = have >= amount;
 			var  lbl    = new Label();
-			lbl.Text = $"{GetItemName(ingType)}   {have} / {amount}";
+			lbl.Text = $"{GetItemName(ingId)}    {have} / {amount}";
 			lbl.AddThemeColorOverride("font_color", enough ? IngredOk : IngredBad);
-			lbl.AddThemeFontSizeOverride("font_size", 11);
+			lbl.AddThemeFontSizeOverride("font_size", 16);
 			lbl.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
 			lbl.SizeFlagsVertical   = Control.SizeFlags.ShrinkCenter;
 			row.AddChild(lbl);
 
 			var statusIcon = new TextureRect();
-			statusIcon.CustomMinimumSize = new Vector2(14, 14);
+			statusIcon.CustomMinimumSize = new Vector2(22, 22);
 			statusIcon.ExpandMode        = TextureRect.ExpandModeEnum.IgnoreSize;
 			statusIcon.StretchMode       = TextureRect.StretchModeEnum.KeepAspectCentered;
 			statusIcon.TextureFilter     = CanvasItem.TextureFilterEnum.Nearest;
@@ -253,25 +275,31 @@ public partial class CraftingUI : CanvasLayer
 	}
 
 	// ── Helpers ────────────────────────────────────────────────────────────
-	private StyleBoxTexture MakeRecipeStyle(bool selected)
+	private StyleBoxFlat MakeRecipeStyle(bool selected)
 	{
-		// Frame[0,0] = normal row, Frame[0,1] = selected (lighter) from ui_frames.png
-		var atlas   = new AtlasTexture();
-		atlas.Atlas  = GetCachedTexture(FramesPath);
-		atlas.Region = selected ? new Rect2(52, 7, 40, 36) : new Rect2(4, 7, 40, 36);
-
-		return new StyleBoxTexture
+		// Flat wood-toned card. Selected gets a lighter fill + accent border.
+		var sb = new StyleBoxFlat
 		{
-			Texture             = atlas,
-			TextureMarginLeft   = 6f,
-			TextureMarginTop    = 5f,
-			TextureMarginRight  = 6f,
-			TextureMarginBottom = 5f,
-			ContentMarginLeft   = 4f,
-			ContentMarginTop    = 4f,
-			ContentMarginRight  = 4f,
-			ContentMarginBottom = 4f,
+			BgColor = selected
+				? new Color(0.94f, 0.78f, 0.52f, 1f)   // warm cream
+				: new Color(0.74f, 0.55f, 0.32f, 1f),  // wood tan
+			BorderColor = selected
+				? new Color(0.95f, 0.62f, 0.18f, 1f)   // gold accent
+				: new Color(0.36f, 0.20f, 0.08f, 1f),  // dark wood
+			BorderWidthLeft   = selected ? 3 : 2,
+			BorderWidthTop    = selected ? 3 : 2,
+			BorderWidthRight  = selected ? 3 : 2,
+			BorderWidthBottom = selected ? 3 : 2,
+			CornerRadiusTopLeft     = 6,
+			CornerRadiusTopRight    = 6,
+			CornerRadiusBottomLeft  = 6,
+			CornerRadiusBottomRight = 6,
+			ContentMarginLeft   = 10f,
+			ContentMarginRight  = 10f,
+			ContentMarginTop    = 6f,
+			ContentMarginBottom = 6f,
 		};
+		return sb;
 	}
 
 	private Texture2D GetCachedTexture(string path)
@@ -282,25 +310,19 @@ public partial class CraftingUI : CanvasLayer
 	}
 
 	// ── ItemDatabase helpers ───────────────────────────────────────────────
-	private static ItemData GetItemData(ItemType type)
-		=> ItemDatabase.Instance?.Get(type.ToString());
+	private static ItemData GetItemData(string id)
+		=> ItemDatabase.Instance?.Get(id);
 
-	private string GetItemName(ItemType type)
+	private static string GetItemName(string id)
 	{
-		var data = GetItemData(type);
-		return data != null ? data.DisplayName : ItemRegistry.GetName(type);
+		var data = GetItemData(id);
+		return data != null ? data.DisplayName : id;
 	}
 
-	private Texture2D GetIconTexture(ItemType type)
+	private Texture2D GetIconTexture(string id)
 	{
-		var data = GetItemData(type);
-		if (data?.Icon != null) return data.Icon;
-
-		// Fallback: atlas slice from ItemRegistry
-		var atlas   = new AtlasTexture();
-		atlas.Atlas  = GetCachedTexture(ItemRegistry.GetIconTexturePath(type));
-		atlas.Region = ItemRegistry.GetIconRegion(type);
-		return atlas;
+		var data = GetItemData(id);
+		return data?.Icon;
 	}
 
 	private StyleBoxTexture MakeBtnStyle(Rect2 region)

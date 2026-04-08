@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/QuestData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "slime_menace"
+Title = "The Slime Menace"
+Description = "Slimes have been creeping out of the marshes and trampling the village herbs. Thin their numbers — defeat 5 of them."
+CompletionText = "The herb beds will breathe again. Take this for your trouble."
+ObjectiveType = 1
+TargetId = "Slime"
+TargetCount = 5
+GoldReward = 120
+ItemRewardIds = PackedStringArray("Herb")
+ItemRewardCount = PackedInt32Array(3)

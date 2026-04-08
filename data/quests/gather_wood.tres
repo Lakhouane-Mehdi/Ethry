@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/QuestData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "gather_wood"
+Title = "A Cabin to Mend"
+Description = "The old carpenter's roof leaks every storm. Bring him 8 logs of fresh wood and he'll patch it before the next rain."
+CompletionText = "Bless you, traveller! These will hold the rain at bay."
+ObjectiveType = 0
+TargetId = "Wood"
+TargetCount = 8
+GoldReward = 60
+ItemRewardIds = PackedStringArray("Bread")
+ItemRewardCount = PackedInt32Array(2)

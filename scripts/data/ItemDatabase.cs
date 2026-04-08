@@ -36,7 +36,10 @@ public partial class ItemDatabase : Node
 				continue;
 
 			var item = GD.Load<ItemData>($"{ItemFolder}/{file}");
-			if (item != null && !string.IsNullOrEmpty(item.Id))
+			if (item == null || string.IsNullOrEmpty(item.Id)) continue;
+			if (_items.ContainsKey(item.Id))
+				GD.PrintErr($"ItemDatabase: duplicate Id '{item.Id}' in '{file}'");
+			else
 				_items[item.Id] = item;
 		}
 		dir.ListDirEnd();

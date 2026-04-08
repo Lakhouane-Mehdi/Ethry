@@ -14,6 +14,9 @@ public partial class NPC : CharacterBody2D
 
 	[Export] public int[] ShopItems = System.Array.Empty<int>();
 
+	/// <summary>If set, this NPC offers the quest with this id when first spoken to.</summary>
+	[Export] public string QuestId = "";
+
 	private FSM.StateMachine _stateMachine;
 	private bool _playerInRange;
 	private int  _pageIndex;      // current line index within THIS session
@@ -64,7 +67,7 @@ public partial class NPC : CharacterBody2D
 
 		// ── Proximity detection ──
 		var area   = new Area2D { CollisionLayer = 0, CollisionMask = 1 };
-		var shape  = new CollisionShape2D { Shape = new CircleShape2D { Radius = 36f } };
+		var shape  = new CollisionShape2D { Shape = new CircleShape2D { Radius = 22f } };
 		area.AddChild(shape);
 		AddChild(area);
 		area.BodyEntered += OnBodyEntered;
@@ -163,6 +166,13 @@ public partial class NPC : CharacterBody2D
 
 		_pageIndex = _cycleSeed;
 		_stateMachine.TransitionTo("Talking");
+
+		// Offer quest on first contact (only once — QuestManager guards re-starts)
+		if (!string.IsNullOrEmpty(QuestId))
+			QuestManager.Instance?.StartQuest(QuestId);
+
+		// Talk-objective fulfilment
+		QuestManager.Instance?.ReportTalk(NpcName);
 	}
 
 	public void OpenDialogueUI()

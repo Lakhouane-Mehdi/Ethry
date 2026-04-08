@@ -9,7 +9,7 @@ public partial class ResourceNode : Node2D
 {
 	[ExportGroup("Simple Mode")]
 	[Export] public int Health = 3;
-	[Export] public ItemType DropType = ItemType.Wood;
+	[Export] public string DropId = "Wood";
 	[Export] public int DropMin = 1;
 	[Export] public int DropMax = 3;
 	[Export] public PackedScene ItemPickupScene;
@@ -40,7 +40,7 @@ public partial class ResourceNode : Node2D
 		if (Tree != null)
 		{
 			Health = Tree.Health;
-			DropType = System.Enum.TryParse<ItemType>(Tree.PrimaryDropId, out var t) ? t : ItemType.Wood;
+			DropId = Tree.PrimaryDropId;
 			DropMin = Tree.PrimaryDropMin;
 			DropMax = Tree.PrimaryDropMax;
 		}
@@ -86,7 +86,7 @@ public partial class ResourceNode : Node2D
 		}
 		else if (_sprite.Texture == null)
 		{
-			var data = ItemDatabase.Instance?.Get(DropType.ToString());
+			var data = ItemDatabase.Instance?.Get(DropId);
 			if (data?.Icon != null)
 				_sprite.Texture = data.Icon;
 		}
@@ -133,7 +133,7 @@ public partial class ResourceNode : Node2D
 		{
 			string itemName = Tree is { DisplayName: not null and not "" }
 				? Tree.DisplayName
-				: DropType.ToString();
+				: DropId;
 			NotificationManager.Instance?.ShowInfo($"Need {RequiredTool} to harvest {itemName}");
 		}
 	}
@@ -151,7 +151,7 @@ public partial class ResourceNode : Node2D
 	{
 		if (!PlayerNear || IsStump) return;
 
-		string itemName = Tree?.DisplayName ?? DropType.ToString();
+		string itemName = Tree?.DisplayName ?? DropId;
 		string equipped = Equipment.Instance?.GetSlotId(EquipSlot.Weapon) ?? "";
 		
 		string promptText = "";
@@ -210,6 +210,7 @@ public partial class ResourceNode : Node2D
 			int amount = (int)GD.RandRange(Tree.FruitDropMin, Tree.FruitDropMax + 1);
 			Inventory.Instance.AddItem(Tree.FruitDropId, amount);
 			AudioManager.Instance?.PlaySfx("harvest");
+			AudioManager.Instance?.PlaySfx("item_pickup");
 			HasFruit = false;
 			DaysSinceHarvest = 0;
 			_stateMachine.TransitionTo("Regrowing");
@@ -217,7 +218,8 @@ public partial class ResourceNode : Node2D
 		else if (IsForageable)
 		{
 			int amount = (int)GD.RandRange(DropMin, DropMax + 1);
-			Inventory.Instance.AddItem(DropType.ToString(), amount);
+			Inventory.Instance.AddItem(DropId, amount);
+			AudioManager.Instance?.PlaySfx("item_pickup");
 			QueueFree(); // Forageables like herbs disappear after harvest
 		}
 
@@ -266,7 +268,7 @@ public partial class ResourceNode : Node2D
 			string equippedTool = attacker.EquippedToolId ?? "";
 			if (!equippedTool.ToLower().Contains(RequiredTool.ToLower()))
 			{
-				string itemName = Tree?.DisplayName ?? DropType.ToString();
+				string itemName = Tree?.DisplayName ?? DropId;
 				string msg = $"Need {RequiredTool} to harvest {itemName}!";
 				NotificationManager.Instance?.ShowInfo(msg);
 				FlashHitWhite();
@@ -286,18 +288,16 @@ public partial class ResourceNode : Node2D
 		};
 		AudioManager.Instance?.PlaySfx(sfx);
 		
-		Color pColor = DropType switch
-		{
-			ItemType.Stone or ItemType.Crystal => new Color(0.5f, 0.5f, 0.5f),
-			_ => new Color(0.45f, 0.3f, 0.15f)
-		};
+		Color pColor = (DropId == "Stone" || DropId == "Crystal")
+			? new Color(0.5f, 0.5f, 0.5f)
+			: new Color(0.45f, 0.3f, 0.15f);
 		if (GodotObject.IsInstanceValid(EffectsManager.Instance)) EffectsManager.Instance.SpawnImpact(GlobalPosition, pColor, 6);
 	}
 
 	public void ChopDown()
 	{
 		int amount = (int)GD.RandRange(DropMin, DropMax + 1);
-		SpawnDrop(DropType.ToString(), amount);
+		SpawnDrop(DropId, amount);
 
 		if (Tree is { IsFruitTree: true } && Tree.StumpTexture != null)
 		{
@@ -341,7 +341,7 @@ public partial class ResourceNode : Node2D
 		var pickup = pickupScene.Instantiate<ItemPickup>();
 		var data = ItemDatabase.Instance?.Get(itemId);
 		if (data != null) pickup.Data = data;
-		else if (System.Enum.TryParse<ItemType>(itemId, out var t)) pickup.Type = t;
+		else pickup.ItemId = itemId;
 		pickup.Amount = amount;
 		pickup.GlobalPosition = GlobalPosition + new Vector2((float)GD.RandRange(-12, 12), (float)GD.RandRange(-12, 12));
 		GetTree().CurrentScene.CallDeferred(Node.MethodName.AddChild, pickup);

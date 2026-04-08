@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dla4fnj7wgbwy"]
+
+[ext_resource type="Script" path="res://scripts/ui/QuestUI.cs" id="1_questui"]
+
+[node name="QuestUI" type="CanvasLayer"]
+process_mode = 3
+layer = 40
+script = ExtResource("1_questui")

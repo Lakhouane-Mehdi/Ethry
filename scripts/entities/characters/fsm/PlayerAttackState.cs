@@ -16,7 +16,7 @@ public partial class PlayerAttackState : PlayerState
 		_player.Velocity = Vector2.Zero;
 
 		// Select animation based on tool
-		string prefix = ItemRegistry.GetToolPrefix(_player.EquippedToolId);
+		string prefix = GetToolPrefix(_player.EquippedToolId);
 		_player.PlayAnimation(prefix);
 		_player.UpdateSpriteFlip();
 
@@ -55,6 +55,17 @@ public partial class PlayerAttackState : PlayerState
 		{
 			GetParent<StateMachine>().TransitionTo("Idle");
 		}
+	}
+
+	private static string GetToolPrefix(string itemId)
+	{
+		if (string.IsNullOrEmpty(itemId)) return "attack";
+		string idLower = itemId.ToLower();
+		if (idLower.Contains("pickaxe")) return "pickaxe";
+		if (idLower.Contains("axe"))     return "axe";
+		if (idLower.Contains("shovel"))  return "shovel";
+		if (idLower.Contains("bow"))     return "bow";
+		return "attack";
 	}
 }
 

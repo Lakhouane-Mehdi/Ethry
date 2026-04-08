@@ -7,3 +7,6 @@ assets/
 
 # Ignore tools folder
 tools/
+
+# Backup files
+*.bak

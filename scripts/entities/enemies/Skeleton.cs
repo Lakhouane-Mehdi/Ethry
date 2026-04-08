@@ -53,21 +53,21 @@ public partial class Skeleton : Enemy
         var pickupScene = GD.Load<PackedScene>("res://scenes/items/item_pickup.tscn");
 
         // Always drop 1-2 bones
-        SpawnDrop(pickupScene, ItemType.Bone, (int)GD.RandRange(1, 3));
+        SpawnDrop(pickupScene, "Bone", (int)GD.RandRange(1, 3));
 
         // 40% chance to drop iron ore
         if (GD.Randf() < 0.4f)
-            SpawnDrop(pickupScene, ItemType.IronOre, 1);
+            SpawnDrop(pickupScene, "IronOre", 1);
 
         // 20% chance to drop a crystal
         if (GD.Randf() < 0.2f)
-            SpawnDrop(pickupScene, ItemType.Crystal, 1);
+            SpawnDrop(pickupScene, "Crystal", 1);
     }
 
-    private void SpawnDrop(PackedScene scene, ItemType type, int amount)
+    private void SpawnDrop(PackedScene scene, string id, int amount)
     {
         var pickup    = scene.Instantiate<ItemPickup>();
-        pickup.Type   = type;
+        pickup.ItemId = id;
         pickup.Amount = amount;
 
         float angle  = (float)GD.RandRange(0, Mathf.Tau);

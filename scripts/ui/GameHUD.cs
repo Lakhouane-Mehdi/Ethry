@@ -11,6 +11,7 @@ public partial class GameHUD : CanvasLayer
 	private Label _dayLabel;
 	private Label _goldLabel;
 	private Label _weatherLabel;
+	private Label _questLabel;
 	private PanelContainer _panel;
 
 	private static readonly Texture2D FramesTex =
@@ -30,11 +31,19 @@ public partial class GameHUD : CanvasLayer
 		PlayerData.Instance.GoldChanged   += _ => RefreshGold();
 
 		if (WeatherSystem.Instance != null)
-			WeatherSystem.Instance.WeatherChanged += _ => RefreshWeather();
+			WeatherSystem.Instance.WeatherTypeChanged += _ => RefreshWeather();
+
+		if (QuestManager.Instance != null)
+		{
+			QuestManager.Instance.QuestStarted    += _ => RefreshQuest();
+			QuestManager.Instance.QuestProgressed += (_, _, _) => RefreshQuest();
+			QuestManager.Instance.QuestCompleted  += _ => RefreshQuest();
+		}
 
 		RefreshTime();
 		RefreshGold();
 		RefreshWeather();
+		RefreshQuest();
 	}
 
 	// ── Build UI ───────────────────────────────────────────────────────────
@@ -88,6 +97,11 @@ public partial class GameHUD : CanvasLayer
 		_goldLabel = MakeLabel("0 g", new Color(1f, 0.88f, 0.28f), 12);
 		goldRow.AddChild(_goldLabel);
 		vbox.AddChild(goldRow);
+
+		// Quest tracker row (compact, only visible if a quest is active)
+		_questLabel = MakeLabel("", new Color(0.95f, 0.85f, 0.55f), 10);
+		_questLabel.Visible = false;
+		vbox.AddChild(_questLabel);
 	}
 
 	private static Label MakeLabel(string text, Color color, int size)
@@ -126,11 +140,11 @@ public partial class GameHUD : CanvasLayer
 		var w = WeatherSystem.Instance.CurrentWeather;
 		(string icon, string name, Color col) = w switch
 		{
-			WeatherSystem.WeatherType.Cloudy => ("~",  "Cloudy", new Color(0.65f, 0.68f, 0.75f)),
-			WeatherSystem.WeatherType.Rain   => ("~",  "Rain",   new Color(0.5f,  0.65f, 0.9f)),
-			WeatherSystem.WeatherType.Storm  => ("!!", "Storm",  new Color(0.6f,  0.45f, 0.85f)),
-			WeatherSystem.WeatherType.Snow   => ("*",  "Snow",   new Color(0.8f,  0.85f, 0.95f)),
-			_                                => ("o",  "Clear",  new Color(0.95f, 0.85f, 0.45f)),
+			WeatherSystem.WeatherType.Cloudy => ("☁", "Cloudy", new Color(0.65f, 0.68f, 0.75f)),
+			WeatherSystem.WeatherType.Rain   => ("🌧", "Rain",   new Color(0.5f,  0.65f, 0.9f)),
+			WeatherSystem.WeatherType.Storm  => ("⛈", "Storm",  new Color(0.6f,  0.45f, 0.85f)),
+			WeatherSystem.WeatherType.Snow   => ("❄", "Snow",   new Color(0.8f,  0.85f, 0.95f)),
+			_                                => ("☀", "Clear",  new Color(0.95f, 0.85f, 0.45f)),
 		};
 		_weatherLabel.Text = $"{icon}  {name}";
 		_weatherLabel.AddThemeColorOverride("font_color", col);
@@ -139,5 +153,21 @@ public partial class GameHUD : CanvasLayer
 	private void RefreshGold()
 	{
 		_goldLabel.Text = $"{PlayerData.Instance.Gold} g";
+	}
+
+	private void RefreshQuest()
+	{
+		if (_questLabel == null || QuestManager.Instance == null) return;
+
+		// Show the first active quest, if any
+		foreach (var (id, progress) in QuestManager.Instance.Active)
+		{
+			var q = QuestManager.Instance.Get(id);
+			if (q == null) continue;
+			_questLabel.Text = $"❖ {q.Title}  ({progress}/{q.TargetCount})";
+			_questLabel.Visible = true;
+			return;
+		}
+		_questLabel.Visible = false;
 	}
 }
