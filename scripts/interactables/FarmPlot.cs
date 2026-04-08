@@ -91,13 +91,36 @@ public partial class FarmPlot : Node2D
 	private static readonly Texture2D CropsTex =
 		GD.Load<Texture2D>("res://assets/cute_fantasy/cute_fantasy/crops/crops.png");
 
-	private static readonly Dictionary<string, int> CropRowY = new()
+	// (Y top of band, height of band, number of stage columns starting at col 2)
+	private static readonly Dictionary<string, (int Y, int H, int Stages)> CropRowY = new()
 	{
-		{ "Carrot",  0   },
-		{ "Herb",    176 },
-		{ "Berry",   512 },
-		{ "Apple",   512 },
-		{ "Wheat",   592 },
+		// crops.png — top→bottom, 4 growth stages at cols 2..5, harvest icon at col 6
+		{ "Wheat",        (0,   16, 4) },
+		{ "Tomato",       (32,  16, 4) },
+		{ "Carrot",       (64,  16, 4) },
+		{ "Eggplant",     (94,  18, 4) },
+		{ "Corn",         (118, 26, 4) },
+		{ "Pumpkin",      (156, 20, 4) },
+		{ "WhiteRadish",  (192, 16, 4) },
+		{ "Lettuce",      (224, 16, 4) },
+		{ "Cucumber",     (244, 28, 4) },
+		{ "ChiliPepper",  (276, 28, 4) },
+		{ "RedPepper",    (308, 28, 4) },
+		{ "OrangePepper", (340, 28, 4) },
+		{ "GreenPepper",  (372, 28, 4) },
+		{ "Watermelon",   (412, 20, 4) },
+		{ "Sunflower",    (436, 28, 4) },
+		{ "WhitePumpkin", (478, 18, 4) },
+		{ "Potato",       (508, 20, 4) },
+		{ "Strawberry",   (544, 16, 4) },
+		{ "RedRadish",    (570, 22, 4) },
+		{ "Onion",        (603, 21, 4) },
+		{ "SpringOnion",  (634, 22, 4) },
+		{ "Grapes",       (660, 28, 4) },
+		// legacy entries (kept so old crops still render)
+		{ "Herb",         (156, 20, 5) },
+		{ "Berry",        (508, 20, 5) },
+		{ "Apple",        (508, 20, 5) },
 	};
 
 	private static readonly Dictionary<string, Texture2D[]> _stageCache = new();
@@ -108,12 +131,12 @@ public partial class FarmPlot : Node2D
 			return crop.GrowthStages;
 		if (_stageCache.TryGetValue(crop.Id, out var cached))
 			return cached;
-		if (!CropRowY.TryGetValue(crop.Id, out int y))
+		if (!CropRowY.TryGetValue(crop.Id, out var info))
 			return System.Array.Empty<Texture2D>();
 
-		var stages = new Texture2D[5];
-		for (int i = 0; i < 5; i++)
-			stages[i] = new AtlasTexture { Atlas = CropsTex, Region = new Rect2((i + 2) * 16, y, 16, 16) };
+		var stages = new Texture2D[info.Stages];
+		for (int i = 0; i < info.Stages; i++)
+			stages[i] = new AtlasTexture { Atlas = CropsTex, Region = new Rect2((i + 2) * 16, info.Y, 16, info.H) };
 		_stageCache[crop.Id] = stages;
 		return stages;
 	}

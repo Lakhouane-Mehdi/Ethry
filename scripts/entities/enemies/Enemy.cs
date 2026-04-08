@@ -105,7 +105,10 @@ public abstract partial class Enemy : CharacterBody2D
         Velocity = knockbackDirection * KnockbackForce;
 
         if (Health <= 0)
+        {
+            QuestManager.Instance?.ReportKill(GetType().Name);
             _stateMachine.TransitionTo("Death");
+        }
         else
             _stateMachine.TransitionTo("Hurt");
     }

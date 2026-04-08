@@ -344,6 +344,17 @@ public partial class ShopUI : CanvasLayer
 		_screen.Visible = false;
 		AddChild(_screen);
 
+		// Blur backdrop (matches inventory / storage UI)
+		var shopBbc = new BackBufferCopy { CopyMode = BackBufferCopy.CopyModeEnum.Viewport };
+		_screen.AddChild(shopBbc);
+		var shopDim = new ColorRect();
+		shopDim.Color = new Color(0, 0, 0, 0.4f);
+		shopDim.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		const string ShopBlurMatPath = "res://shaders/blur_material.tres";
+		if (FileAccess.FileExists(ShopBlurMatPath))
+			shopDim.Material = GD.Load<ShaderMaterial>(ShopBlurMatPath);
+		_screen.AddChild(shopDim);
+
 		var atlas = new AtlasTexture { Atlas = FramesTex, Region = new Rect2(4, 49, 40, 46) };
 		var style = new StyleBoxTexture
 		{

@@ -20,47 +20,47 @@ public partial class Chest : Area2D
 	public bool PlayerInRange => _playerInRange;
 	public bool InitialLootGenerated => _initialLootGenerated;
 
-	// Loot tables per tier — (item, minAmount, maxAmount, weight)
-	private static readonly (ItemType, int, int, int)[][] LootTables = new[]
+	// Loot tables per tier — (itemId, minAmount, maxAmount, weight)
+	private static readonly (string, int, int, int)[][] LootTables = new[]
 	{
 		// Tier 0 — Wood chest: basic resources
-		new (ItemType, int, int, int)[]
+		new (string, int, int, int)[]
 		{
-			(ItemType.Wood,   2, 5, 30),
-			(ItemType.Stone,  2, 4, 25),
-			(ItemType.Fiber,  1, 3, 20),
-			(ItemType.Herb,   1, 2, 15),
-			(ItemType.Coal,   1, 2, 10),
+			("Wood",   2, 5, 30),
+			("Stone",  2, 4, 25),
+			("Fiber",  1, 3, 20),
+			("Herb",   1, 2, 15),
+			("Coal",   1, 2, 10),
 		},
 		// Tier 1 — Metal chest: better resources
-		new (ItemType, int, int, int)[]
+		new (string, int, int, int)[]
 		{
-			(ItemType.IronOre,  2, 4, 25),
-			(ItemType.Coal,     2, 3, 20),
-			(ItemType.Leather,  1, 3, 20),
-			(ItemType.Bone,     1, 2, 15),
-			(ItemType.Crystal,  1, 1, 10),
-			(ItemType.Herb,     2, 4, 10),
+			("IronOre",  2, 4, 25),
+			("Coal",     2, 3, 20),
+			("Leather",  1, 3, 20),
+			("Bone",     1, 2, 15),
+			("Crystal",  1, 1, 10),
+			("Herb",     2, 4, 10),
 		},
 		// Tier 2 — Gold chest: rare materials
-		new (ItemType, int, int, int)[]
+		new (string, int, int, int)[]
 		{
-			(ItemType.GoldOre,    1, 3, 25),
-			(ItemType.IronIngot,  1, 2, 20),
-			(ItemType.Crystal,    1, 2, 20),
-			(ItemType.Leather,    2, 4, 15),
-			(ItemType.GoldIngot,  1, 1, 10),
-			(ItemType.HealthPotion, 1, 1, 10),
+			("GoldOre",      1, 3, 25),
+			("IronIngot",    1, 2, 20),
+			("Crystal",      1, 2, 20),
+			("Leather",      2, 4, 15),
+			("GoldIngot",    1, 1, 10),
+			("HealthPotion", 1, 1, 10),
 		},
 		// Tier 3 — Jeweled chest: best loot
-		new (ItemType, int, int, int)[]
+		new (string, int, int, int)[]
 		{
-			(ItemType.GoldIngot,    1, 2, 20),
-			(ItemType.IronIngot,    2, 3, 20),
-			(ItemType.Crystal,      1, 3, 15),
-			(ItemType.HealthPotion, 1, 2, 15),
-			(ItemType.GoldOre,      2, 4, 15),
-			(ItemType.Crystal,      2, 3, 5),
+			("GoldIngot",    1, 2, 20),
+			("IronIngot",    2, 3, 20),
+			("Crystal",      1, 3, 15),
+			("HealthPotion", 1, 2, 15),
+			("GoldOre",      2, 4, 15),
+			("Crystal",      2, 3, 5),
 		},
 	};
 
@@ -155,15 +155,15 @@ public partial class Chest : Area2D
 
 		for (int i = 0; i < rolls; i++)
 		{
-			var (itemType, minAmt, maxAmt, _) = PickWeighted(table);
+			var (itemId, minAmt, maxAmt, _) = PickWeighted(table);
 			int amount = (int)GD.RandRange(minAmt, maxAmt + 1);
-			_inventory.AddItem(itemType.ToString(), amount);
+			_inventory.AddItem(itemId, amount);
 		}
 
 		NotificationManager.Instance?.Show("Chest contents discovered!", new Color(1f, 0.85f, 0.3f));
 	}
 
-	private static (ItemType, int, int, int) PickWeighted((ItemType, int, int, int)[] table)
+	private static (string, int, int, int) PickWeighted((string, int, int, int)[] table)
 	{
 		int totalWeight = 0;
 		foreach (var (_, _, _, w) in table)

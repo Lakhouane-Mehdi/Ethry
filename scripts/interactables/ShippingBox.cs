@@ -8,7 +8,7 @@ using FSM;
 /// </summary>
 public partial class ShippingBox : Node2D
 {
-	// ── Item sell prices (gold per unit). Keys match ItemData.Id / ItemType.ToString()
+	// ── Item sell prices (gold per unit). Keys match ItemData.Id
 	private static readonly Dictionary<string, int> Prices = new()
 	{
 		// Resources

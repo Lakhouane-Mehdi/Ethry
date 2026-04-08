@@ -31,22 +31,11 @@ public partial class Equipment : Node
 		return id != null ? ItemDatabase.Instance?.Get(id) : null;
 	}
 
-	/// <summary>Legacy: returns ItemType? for the slot (works for enum-based items).</summary>
-	public ItemType? GetSlot(EquipSlot slot)
-	{
-		var id = GetSlotId(slot);
-		if (id == null) return null;
-		return System.Enum.TryParse<ItemType>(id, out var t) ? t : null;
-	}
-
 	public int GetAttackDamage()
 	{
 		if (_weaponId == null) return 1;
 		var data = ItemDatabase.Instance?.Get(_weaponId);
-		if (data != null) return data.WeaponDamage > 0 ? data.WeaponDamage : 1;
-		// Fallback to enum registry
-		if (System.Enum.TryParse<ItemType>(_weaponId, out var t))
-			return ItemRegistry.GetWeaponDamage(t);
+		if (data != null && data.WeaponDamage > 0) return data.WeaponDamage;
 		return 1;
 	}
 
@@ -59,25 +48,16 @@ public partial class Equipment : Node
 	{
 		if (id == null) return 0;
 		var data = ItemDatabase.Instance?.Get(id);
-		if (data != null) return data.ArmorRating;
-		if (System.Enum.TryParse<ItemType>(id, out var t))
-			return ItemRegistry.GetArmorRating(t);
-		return 0;
+		return data?.ArmorRating ?? 0;
 	}
 
 	// ── Equip (string ID) ─────────────────────────────────────────────────
 	public bool Equip(string id)
 	{
 		var data = ItemDatabase.Instance?.Get(id);
-		EquipSlot? slot;
+		if (data == null) return false;
 
-		if (data != null)
-			slot = data.GetEquipSlot();
-		else if (System.Enum.TryParse<ItemType>(id, out var t))
-			slot = ItemRegistry.GetEquipSlot(t);
-		else
-			return false;
-
+		EquipSlot? slot = data.GetEquipSlot();
 		if (slot == null) return false;
 		if (!Inventory.Instance.HasItem(id)) return false;
 
@@ -91,9 +71,6 @@ public partial class Equipment : Node
 		EmitSignal(SignalName.Changed);
 		return true;
 	}
-
-	/// <summary>Legacy ItemType overload.</summary>
-	public bool Equip(ItemType type) => Equip(type.ToString());
 
 	// ── Unequip ────────────────────────────────────────────────────────────
 	public void Unequip(EquipSlot slot)

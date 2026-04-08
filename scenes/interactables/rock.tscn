@@ -24,7 +24,7 @@ y_sort_enabled = true
 scale = Vector2(3, 3)
 script = ExtResource("1_rnode")
 Health = 5
-DropType = 1
+DropId = "Stone"
 ItemPickupScene = ExtResource("3_pickup")
 RequiredTool = "Pickaxe"
 

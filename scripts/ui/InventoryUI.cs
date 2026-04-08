@@ -55,6 +55,7 @@ public partial class InventoryUI : CanvasLayer
 	// Hover tooltip
 	private PanelContainer _tooltip;
 	private Label          _tooltipName, _tooltipDesc;
+	private TextureRect    _tooltipIcon;
 	private Label          _dmgLabel, _defLabel;
 
 	// ── Constants ──────────────────────────────────────────────────────────
@@ -93,8 +94,9 @@ public partial class InventoryUI : CanvasLayer
 	private static readonly Rect2 SelectorRegion = new(10, 200, 28, 30);
 
 	[ExportGroup("Stats Labels")]
-	[Export] public Vector2I DmgLabelPos = new(18, 86);
-	[Export] public Vector2I DefLabelPos = new(18, 100);
+	// Centered horizontally below the WPN slot (panel inner width ≈ 96 px)
+	[Export] public Vector2I DmgLabelPos = new(6, 88);
+	[Export] public Vector2I DefLabelPos = new(50, 88);
 
 	// ── Lifecycle ──────────────────────────────────────────────────────────
 	public override void _Ready()
@@ -168,22 +170,18 @@ public partial class InventoryUI : CanvasLayer
 		_bootsBtn.Pressed  += () => Unequip(EquipSlot.Boots);
 		_weaponBtn.Pressed += () => Unequip(EquipSlot.Weapon);
 
-		// Stats labels on the action bars area
-		_dmgLabel = MakeLabel(DmgLabelPos.X * UIScale, DmgLabelPos.Y * UIScale, 70 * UIScale, "DMG: 1");
-		_defLabel = MakeLabel(DefLabelPos.X * UIScale, DefLabelPos.Y * UIScale, 70 * UIScale, "DEF: 0");
+		// Stats labels — placed below the WPN slot in the empty footer of the equip panel
+		_dmgLabel = MakeLabel(DmgLabelPos.X * UIScale, DmgLabelPos.Y * UIScale, 42 * UIScale, "DMG: 1");
+		_defLabel = MakeLabel(DefLabelPos.X * UIScale, DefLabelPos.Y * UIScale, 42 * UIScale, "DEF: 0");
+		_dmgLabel.AddThemeFontSizeOverride("font_size", 14);
+		_defLabel.AddThemeFontSizeOverride("font_size", 14);
+		_dmgLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.92f, 0.78f));
+		_defLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.92f, 0.78f));
+		_dmgLabel.HorizontalAlignment = HorizontalAlignment.Center;
+		_defLabel.HorizontalAlignment = HorizontalAlignment.Center;
 
-		// Equipment slot type labels (right-aligned in the space left of the slot)
-		foreach (var (pos, text) in new (Vector2I, string)[]
-		{
-			(HeadPos, "HEAD"), (BodyPos, "BODY"), (BootsPos, "BOOT"), (WeaponPos, "WPN ")
-		})
-		{
-			int labelY = pos.Y * UIScale + (SlotH - 10) / 2;
-			var slotLbl = MakeLabel(1, labelY, pos.X * UIScale - 3, text);
-			slotLbl.HorizontalAlignment = HorizontalAlignment.Right;
-			slotLbl.AddThemeFontSizeOverride("font_size", 8);
-			slotLbl.AddThemeColorOverride("font_color", new Color(0.5f, 0.38f, 0.2f));
-		}
+		// (Equipment slot text labels removed — they overlapped the slot icons.
+		// Slot purpose is communicated by the background art and the hover tooltip.)
 
 		// Detail panel (right of inventory — avoids left-edge clipping)
 		BuildDetailPanel();
@@ -191,17 +189,18 @@ public partial class InventoryUI : CanvasLayer
 		// Tooltip
 		BuildTooltip();
 
-		// Close hint
+		// Close hint — wider and slightly higher so the bitmap font isn't clipped
 		var closeHint = new Label();
 		closeHint.Text = "[I] or [ESC] to Close";
-		closeHint.Position = new Vector2(PremadeRegion.Size.X * UIScale / 2f - 65,
-										  PremadeRegion.Size.Y * UIScale - 13);
-		closeHint.Size = new Vector2(130, 12);
+		float hintW = 220;
+		closeHint.Position = new Vector2(PremadeRegion.Size.X * UIScale / 2f - hintW / 2f,
+										  PremadeRegion.Size.Y * UIScale - 18);
+		closeHint.Size = new Vector2(hintW, 14);
 		closeHint.HorizontalAlignment = HorizontalAlignment.Center;
-		closeHint.AddThemeColorOverride("font_color", new Color(0.35f, 0.25f, 0.12f, 0.8f));
-		closeHint.AddThemeFontSizeOverride("font_size", 9);
-		if (FileAccess.FileExists(DefaultFontPath)) 
-			closeHint.AddThemeFontOverride("font", GD.Load<Font>(DefaultFontPath));
+		closeHint.AddThemeColorOverride("font_color", new Color(0.98f, 0.95f, 0.82f));
+		closeHint.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.7f));
+		closeHint.AddThemeConstantOverride("outline_size", 4);
+		closeHint.AddThemeFontSizeOverride("font_size", 13);
 		closeHint.MouseFilter = Control.MouseFilterEnum.Ignore;
 		_root.AddChild(closeHint);
 
@@ -594,12 +593,26 @@ public partial class InventoryUI : CanvasLayer
 		_tooltip.AddThemeStyleboxOverride("panel", tooltipStyle);
 
 		var vbox = new VBoxContainer();
+		vbox.AddThemeConstantOverride("separation", 4);
 		_tooltip.AddChild(vbox);
+
+		// Header row: icon + name
+		var header = new HBoxContainer();
+		header.AddThemeConstantOverride("separation", 6);
+		vbox.AddChild(header);
+
+		_tooltipIcon = new TextureRect();
+		_tooltipIcon.CustomMinimumSize = new Vector2(24, 24);
+		_tooltipIcon.ExpandMode    = TextureRect.ExpandModeEnum.IgnoreSize;
+		_tooltipIcon.StretchMode   = TextureRect.StretchModeEnum.KeepAspectCentered;
+		_tooltipIcon.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+		header.AddChild(_tooltipIcon);
 
 		_tooltipName = new Label();
 		_tooltipName.AddThemeColorOverride("font_color", new Color(0.6f, 0.25f, 0.1f));
 		_tooltipName.AddThemeFontSizeOverride("font_size", 14);
-		vbox.AddChild(_tooltipName);
+		_tooltipName.VerticalAlignment = VerticalAlignment.Center;
+		header.AddChild(_tooltipName);
 
 		_tooltipDesc = new Label();
 		_tooltipDesc.AutowrapMode = TextServer.AutowrapMode.WordSmart;
@@ -763,6 +776,7 @@ public partial class InventoryUI : CanvasLayer
 
 		var data = _itemOrder[index];
 		_tooltipName.Text = data.DisplayName;
+		if (_tooltipIcon != null) _tooltipIcon.Texture = data.Icon;
 
 		string desc = data.Description;
 		if (data.WeaponDamage > 0) desc += $"\nDamage: {data.WeaponDamage}";
@@ -801,7 +815,29 @@ public partial class InventoryUI : CanvasLayer
 	{
 		if (_selectedIndex < 0 || _selectedIndex >= _itemOrder.Count) return;
 		var data = _itemOrder[_selectedIndex];
+
+		// Spawn a world pickup at the player so it can be re-collected.
+		var player = GetTree().GetFirstNodeInGroup("player") as Node2D;
+		if (player != null)
+		{
+			var scene  = GD.Load<PackedScene>("res://scenes/items/item_pickup.tscn");
+			var pickup = scene.Instantiate<ItemPickup>();
+			pickup.Data   = data;
+			pickup.ItemId = data.Id;
+			pickup.Amount = 1;
+
+			// Toss it in front of the player so they don't immediately re-pick up.
+			float angle  = (float)GD.RandRange(0, Mathf.Tau);
+			float radius = (float)GD.RandRange(20, 32);
+			pickup.Position = player.GlobalPosition + new Vector2(
+				Mathf.Cos(angle) * radius,
+				Mathf.Sin(angle) * radius);
+
+			GetTree().CurrentScene.AddChild(pickup);
+		}
+
 		Inventory.Instance.RemoveItem(data.Id, 1);
+		AudioManager.Instance?.PlaySfxFlat("ui_click");
 		Refresh();
 	}
 

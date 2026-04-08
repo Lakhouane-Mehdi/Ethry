@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/QuestData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+Id = "herbalists_request"
+Title = "The Herbalist's Request"
+Description = "Old Mara is brewing a tonic for the sick miller. She needs 6 wild herbs gathered before sundown."
+CompletionText = "The miller thanks you with all his heart. So do I."
+ObjectiveType = 0
+TargetId = "Herb"
+TargetCount = 6
+GoldReward = 40
+ItemRewardIds = PackedStringArray()
+ItemRewardCount = PackedInt32Array()

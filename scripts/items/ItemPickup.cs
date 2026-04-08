@@ -2,25 +2,25 @@ using Godot;
 
 /// <summary>
 /// Dropped item pickup in the world.
-/// Prefer editor-assigned ItemData via the Inspector.
-/// Falls back to the legacy ItemType enum for code-spawned pickups
-/// (e.g. ResourceNode) that have not yet been migrated.
+/// Assign ItemData in the Inspector, or set ItemId for code-spawned drops.
 /// </summary>
 public partial class ItemPickup : Area2D
 {
-	// ── Editor-friendly path (ItemData .tres) ──────────────────────────
-	[ExportGroup("Item (preferred)")]
+	[ExportGroup("Item")]
 	[Export] public ItemData Data;
-
-	// ── Legacy enum path (backward compat) ────────────────────────────
-	[ExportGroup("Item (legacy enum)")]
-	[Export] public ItemType Type   = ItemType.Wood;
+	[Export] public string   ItemId = "";
 	[Export] public int      Amount = 1;
 
-	private float   _bobTimer;
-	private Vector2 _startPosition;
+	[ExportGroup("Despawn")]
+	/// <summary>Seconds before the pickup disappears. 0 = never.</summary>
+	[Export] public float Lifetime = 120f;
+	/// <summary>Seconds before despawn to start blinking as a warning.</summary>
+	[Export] public float BlinkWarning = 10f;
 
-	private readonly System.Collections.Generic.Dictionary<string, Texture2D> _texCache = new();
+	private float   _bobTimer;
+	private float   _age;
+	private Vector2 _startPosition;
+	private Sprite2D _sprite;
 
 	public override void _Ready()
 	{
@@ -29,6 +29,10 @@ public partial class ItemPickup : Area2D
 		_startPosition = Position;
 		BodyEntered   += OnBodyEntered;
 
+		// Resolve ItemId → Data when only an ID is provided
+		if (Data == null && !string.IsNullOrEmpty(ItemId))
+			Data = ItemDatabase.Instance?.Get(ItemId);
+
 		ApplySprite();
 	}
 
@@ -36,41 +40,31 @@ public partial class ItemPickup : Area2D
 	{
 		_bobTimer += (float)delta;
 		Position   = _startPosition + new Vector2(0f, Mathf.Sin(_bobTimer * 3f) * 2f);
+
+		if (Lifetime > 0f)
+		{
+			_age += (float)delta;
+			float remaining = Lifetime - _age;
+			if (remaining <= 0f) { QueueFree(); return; }
+
+			if (_sprite != null && remaining <= BlinkWarning)
+			{
+				// Blink faster as it nears despawn
+				float speed = Mathf.Lerp(4f, 14f, 1f - remaining / BlinkWarning);
+				float alpha = 0.35f + 0.65f * (Mathf.Sin(_age * speed) * 0.5f + 0.5f);
+				_sprite.Modulate = new Color(1, 1, 1, alpha);
+			}
+		}
 	}
 
-	// ── Private ────────────────────────────────────────────────────────
 	private void ApplySprite()
 	{
-		var sprite = GetNode<Sprite2D>("Sprite2D");
-
-		// 1. Prefer ItemData icon (editor-assigned resource)
-		if (Data != null && Data.Icon != null)
+		_sprite = GetNode<Sprite2D>("Sprite2D");
+		if (Data?.Icon != null)
 		{
-			sprite.Texture = Data.Icon;
-			sprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-			return;
+			_sprite.Texture = Data.Icon;
+			_sprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
 		}
-
-		// 2. Check Database for legacy 'Type' before falling back to registry
-		var dbData = ItemDatabase.Instance?.Get(Type.ToString());
-		if (dbData != null && dbData.Icon != null)
-		{
-			sprite.Texture = dbData.Icon;
-			sprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-			return;
-		}
-
-		// 3. Final Fallback: legacy hardcoded ItemRegistry lookup
-		string path = ItemRegistry.GetIconTexturePath(Type);
-		if (!_texCache.TryGetValue(path, out var tex))
-			_texCache[path] = tex = GD.Load<Texture2D>(path);
-
-		var atlas   = new AtlasTexture();
-		atlas.Atlas  = tex;
-		atlas.Region = ItemRegistry.GetIconRegion(Type);
-
-		sprite.Texture       = atlas;
-		sprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
 	}
 
 	private void OnBodyEntered(Node2D body)
@@ -79,8 +73,8 @@ public partial class ItemPickup : Area2D
 
 		if (Data != null)
 			Inventory.Instance.AddItem(Data, Amount);
-		else
-			Inventory.Instance.AddItem(Type, Amount);
+		else if (!string.IsNullOrEmpty(ItemId))
+			Inventory.Instance.AddItem(ItemId, Amount);
 
 		AudioManager.Instance?.PlaySfx("item_pickup");
 		QueueFree();

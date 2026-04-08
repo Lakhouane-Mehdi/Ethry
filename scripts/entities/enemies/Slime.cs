@@ -13,21 +13,21 @@ public partial class Slime : Enemy
         var pickupScene = GD.Load<PackedScene>("res://scenes/items/item_pickup.tscn");
 
         // Always drop 1-2 fiber (slime residue)
-        SpawnDrop(pickupScene, ItemType.Fiber, (int)GD.RandRange(1, 3));
+        SpawnDrop(pickupScene, "Fiber", (int)GD.RandRange(1, 3));
 
         // 40% chance to drop herb
         if (GD.Randf() < 0.4f)
-            SpawnDrop(pickupScene, ItemType.Herb, 1);
+            SpawnDrop(pickupScene, "Herb", 1);
 
         // 15% chance to drop a berry
         if (GD.Randf() < 0.15f)
-            SpawnDrop(pickupScene, ItemType.Berry, 1);
+            SpawnDrop(pickupScene, "Berry", 1);
     }
 
-    private void SpawnDrop(PackedScene scene, ItemType type, int amount)
+    private void SpawnDrop(PackedScene scene, string id, int amount)
     {
         var pickup    = scene.Instantiate<ItemPickup>();
-        pickup.Type   = type;
+        pickup.ItemId = id;
         pickup.Amount = amount;
 
         float angle  = (float)GD.RandRange(0, Mathf.Tau);

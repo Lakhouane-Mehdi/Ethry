@@ -4,6 +4,7 @@ using Godot;
 public partial class Inventory : Node
 {
 	[Export] public bool IsPlayerInventory = true;
+	[Export] public bool GiveDebugStarterItems = false;
 	public static Inventory Instance { get; private set; }
 
 	private readonly Dictionary<string, int> _items = new();
@@ -16,8 +17,23 @@ public partial class Inventory : Node
 		if (IsPlayerInventory)
 		{
 			Instance = this;
-			// DEBUG: starter shovel for testing farming
-			if (!HasItem("Shovel")) AddItem("Shovel", 1);
+			if (GiveDebugStarterItems && !HasItem("Shovel"))
+			{
+				// Tools
+				AddItem("Shovel", 1);
+				AddItem("Hoe", 1);
+				AddItem("WateringCan", 1);
+				// All seeds (5 of each) so every crop is testable
+				string[] seeds = {
+					"WheatSeeds", "TomatoSeeds", "CarrotSeeds", "EggplantSeeds", "CornSeeds",
+					"PumpkinSeeds", "WhiteRadishSeeds", "LettuceSeeds", "CucumberSeeds",
+					"ChiliPepperSeeds", "RedPepperSeeds", "OrangePepperSeeds", "GreenPepperSeeds",
+					"WatermelonSeeds", "SunflowerSeeds", "WhitePumpkinSeeds", "PotatoSeeds",
+					"StrawberrySeeds", "RedRadishSeeds", "OnionSeeds", "SpringOnionSeeds", "GrapesSeeds",
+					"HerbSeeds", "AppleSeeds", "BerrySeeds",
+				};
+				foreach (var s in seeds) AddItem(s, 5);
+			}
 		}
 	}
 
@@ -63,10 +79,4 @@ public partial class Inventory : Node
 	public bool RemoveItem(ItemData item, int amount = 1) => RemoveItem(item.Id, amount);
 	public bool HasItem(ItemData item, int amount = 1)    => HasItem(item.Id, amount);
 	public int  GetCount(ItemData item)                   => GetCount(item.Id);
-
-	// ── Legacy ItemType overloads (backward compat) ───────────────────────
-	public void AddItem(ItemType type, int amount = 1)    => AddItem(type.ToString(), amount);
-	public bool RemoveItem(ItemType type, int amount = 1) => RemoveItem(type.ToString(), amount);
-	public bool HasItem(ItemType type, int amount = 1)    => HasItem(type.ToString(), amount);
-	public int  GetCount(ItemType type)                   => GetCount(type.ToString());
 }

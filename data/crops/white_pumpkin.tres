@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="CropData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CropData.cs" id="1"]
+[ext_resource type="Texture2D" path="res://assets/cute_fantasy/cute_fantasy/crops/crops.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s0"]
+atlas = ExtResource("2")
+region = Rect2(32, 478, 16, 18)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s1"]
+atlas = ExtResource("2")
+region = Rect2(48, 478, 16, 18)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s2"]
+atlas = ExtResource("2")
+region = Rect2(64, 478, 16, 18)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s3"]
+atlas = ExtResource("2")
+region = Rect2(80, 478, 16, 18)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_seed"]
+atlas = ExtResource("2")
+region = Rect2(16, 480, 16, 16)
+
+[resource]
+script = ExtResource("1")
+Id = "WhitePumpkin"
+DisplayName = "White Pumpkin"
+HarvestItemId = "WhitePumpkin"
+GrowthDays = 7
+HarvestMin = 1
+HarvestMax = 3
+Regrows = false
+ValidSeasons = PackedInt32Array(2)
+GrowthStages = [SubResource("AtlasTexture_s0"), SubResource("AtlasTexture_s1"), SubResource("AtlasTexture_s2"), SubResource("AtlasTexture_s3")]
+SeedIcon = SubResource("AtlasTexture_seed")

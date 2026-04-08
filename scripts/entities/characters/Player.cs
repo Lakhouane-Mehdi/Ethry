@@ -242,17 +242,12 @@ public partial class Player : CharacterBody2D
 		Health = Mathf.Min(Health + amount, MaxHealth);
 	}
 
-	/// <summary>Consumes a food item and heals the player.
+	/// <summary>Consumes a food item by string ID.
 	/// Returns false if already at max HP or item not in inventory.</summary>
-	public bool UseConsumable(ItemType type) => UseConsumable(type.ToString());
-
-	/// <summary>Consumes a food item by string ID.</summary>
 	public bool UseConsumable(string itemId)
 	{
 		var data = ItemDatabase.Instance?.Get(itemId);
 		int heal = data?.HealAmount ?? 0;
-		if (heal <= 0 && System.Enum.TryParse<ItemType>(itemId, out var t))
-			heal = ItemRegistry.GetHealAmount(t);
 
 		if (heal <= 0)           return false;
 		if (Health >= MaxHealth) return false;

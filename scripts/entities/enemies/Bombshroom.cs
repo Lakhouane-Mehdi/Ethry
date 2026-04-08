@@ -32,19 +32,19 @@ public partial class Bombshroom : Enemy
         var pickupScene = GD.Load<PackedScene>("res://scenes/items/item_pickup.tscn");
 
         // Drop mushroom + herbs
-        SpawnDrop(pickupScene, ItemType.Mushroom, (int)GD.RandRange(1, 3));
+        SpawnDrop(pickupScene, "Mushroom", (int)GD.RandRange(1, 3));
 
         if (GD.Randf() < 0.5f)
-            SpawnDrop(pickupScene, ItemType.Herb, (int)GD.RandRange(1, 3));
+            SpawnDrop(pickupScene, "Herb", (int)GD.RandRange(1, 3));
 
         if (GD.Randf() < 0.15f)
-            SpawnDrop(pickupScene, ItemType.Coal, 1);
+            SpawnDrop(pickupScene, "Coal", 1);
     }
 
-    private void SpawnDrop(PackedScene scene, ItemType type, int amount)
+    private void SpawnDrop(PackedScene scene, string id, int amount)
     {
         var pickup    = scene.Instantiate<ItemPickup>();
-        pickup.Type   = type;
+        pickup.ItemId = id;
         pickup.Amount = amount;
 
         float angle  = (float)GD.RandRange(0, Mathf.Tau);

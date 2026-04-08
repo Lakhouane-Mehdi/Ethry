@@ -1,5 +1,7 @@
 using Godot;
 
+public enum ItemCategory { Resource, Tool, Weapon, Armor, Food, Potion }
+
 /// <summary>
 /// Resource-based item definition. Create .tres files in the editor
 /// to add or modify items without touching code.

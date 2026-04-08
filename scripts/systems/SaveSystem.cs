@@ -44,8 +44,10 @@ public partial class SaveSystem : Node
 			{ "day",     DaySystem.Instance.Day },
 			{ "season",  DaySystem.Instance.SeasonIndex },
 			{ "year",    DaySystem.Instance.Year },
+			{ "weather", WeatherSystem.Instance != null ? (int)WeatherSystem.Instance.CurrentWeather : 0 },
 			{ "inventory", inv },
 			{ "equipment", equip },
+			{ "quests",    QuestManager.Instance?.GetSaveData() ?? new Godot.Collections.Dictionary() },
 		};
 
 		using var file = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
@@ -81,6 +83,10 @@ public partial class SaveSystem : Node
 		RestoreGold(gold);
 		RestoreDay(day, season, year);
 
+		// --- Weather ---
+		if (data.TryGetValue("weather", out var wv) && WeatherSystem.Instance != null)
+			WeatherSystem.Instance.SetWeather((WeatherSystem.WeatherType)wv.AsInt32());
+
 		// --- Inventory ---
 		if (data.TryGetValue("inventory", out var inv) && inv.VariantType == Variant.Type.Dictionary)
 		{
@@ -101,6 +107,10 @@ public partial class SaveSystem : Node
 			RestoreEquipSlot(eqDict, "body",   EquipSlot.Body);
 			RestoreEquipSlot(eqDict, "boots",  EquipSlot.Boots);
 		}
+
+		// --- Quests ---
+		if (data.TryGetValue("quests", out var qv) && qv.VariantType == Variant.Type.Dictionary)
+			QuestManager.Instance?.LoadSaveData(qv.AsGodotDictionary());
 
 		GD.Print($"SaveSystem: loaded (Day {day}, {gold}g).");
 	}
